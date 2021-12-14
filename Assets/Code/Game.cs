@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class Game
 {
+    private static readonly int Run = Animator.StringToHash("Run");
     private static readonly int Die = Animator.StringToHash("Die");
     private static References _references;
     private static State _state;
@@ -14,11 +15,13 @@ public static class Game
         _state.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
         _state.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
         _state.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
-        _state.BulletBounds = new Rect(
-            _references.Camera.transform.position.x - _references.Camera.refResolutionX * 0.5f,
-            _references.Camera.transform.position.y - _references.Camera.refResolutionY * 0.5f,
-            _references.Camera.refResolutionX,
-            _references.Camera.refResolutionY);
+        var width = _references.Camera.refResolutionX + 30;
+        var height = _references.Camera.refResolutionY + 30;
+        _state.VisibilityBounds = new Rect(
+            _references.Camera.transform.position.x - width * 0.5f,
+            _references.Camera.transform.position.y - height * 0.5f,
+            width,
+            height);
 
         InitializeBullets();
         InitializeZombies();
@@ -101,7 +104,7 @@ public static class Game
                 }
             }
 
-            if (!_state.BulletBounds.Contains(bullet.Value.transform.position))
+            if (!_state.VisibilityBounds.Contains(bullet.Value.transform.position))
             {
                 shouldDeactivate = true;
             }
@@ -124,8 +127,7 @@ public static class Game
 
     private static void UpdateZombies()
     {
-        //DeactivateZombie(enemy.State.Index);
-        /*if (_state.ActiveZombies.Count == 0)
+        if (_state.ActiveZombies.Count == 0)
         {
             return;
         }
@@ -134,7 +136,7 @@ public static class Game
 
         while (true)
         {
-            if (zombie.Value.State.HasCollided && zombie.Value.State.CollidedWithBullet.State.IsActive)
+            if (!_state.VisibilityBounds.Contains(zombie.Value.transform.position))
             {
                 DeactivateZombie(ref zombie);
             }
@@ -145,7 +147,7 @@ public static class Game
             }
 
             zombie = ref _state.ActiveZombies.Next(ref zombie);
-        }*/
+        }
     }
 
     private static void TryFireStraight(Input input)
@@ -186,11 +188,13 @@ public static class Game
         zombie.RigidBody.velocity = new Vector2(-zombieVelocity * zombie.State.SpeedFactor, 0f);
         zombie.Collider.enabled = true;
         zombie.transform.position = _references.ZombieSpawn.position;
+        zombie.Animator.SetTrigger(Run);
     }
 
     private static void DieEnemy(EnemyComponent enemy)
     {
         const float zombieCorpseVelocity = 50f;
+        enemy.Animator.ResetTrigger(Run);
         enemy.Animator.SetTrigger(Die);
         enemy.State.IsDead = true;
         enemy.Collider.enabled = false;
@@ -218,7 +222,7 @@ public static class Game
 
     private struct State
     {
-        public Rect BulletBounds;
+        public Rect VisibilityBounds;
         public float ZombieTickCooldown;
         public ArrayList<BulletComponent> ActiveBullets;
         public Stack<BulletComponent> InactiveBullets;
