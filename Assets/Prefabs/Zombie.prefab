@@ -165,3 +165,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RigidBody: {fileID: 6301619873084957461}
+  Collider: {fileID: 2669891490862949893}
+  Animator: {fileID: 4909444225497751597}

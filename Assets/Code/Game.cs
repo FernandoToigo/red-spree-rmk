@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class Game
 {
+    private static readonly int Die = Animator.StringToHash("Die");
     private static References _references;
     private static State _state;
 
@@ -89,16 +90,17 @@ public static class Game
             for (var i = 0; i < bullet.Value.State.CollidedEnemies.UsableLength; i++)
             {
                 var enemy = bullet.Value.State.CollidedEnemies.Data[i];
-                DeactivateZombie(enemy.State.Index);
+                enemy.State.IsDead = true;
                 bullet.Value.State.RemainingHits--;
 
                 if (bullet.Value.State.RemainingHits <= 0)
                 {
+                    DieEnemy(enemy);
                     shouldDeactivate = true;
                     break;
                 }
             }
-            
+
             if (!_state.BulletBounds.Contains(bullet.Value.transform.position))
             {
                 shouldDeactivate = true;
@@ -122,6 +124,7 @@ public static class Game
 
     private static void UpdateZombies()
     {
+        //DeactivateZombie(enemy.State.Index);
         /*if (_state.ActiveZombies.Count == 0)
         {
             return;
@@ -181,7 +184,17 @@ public static class Game
         const float zombieVelocity = 100f;
         zombie.RigidBody.simulated = true;
         zombie.RigidBody.velocity = new Vector2(-zombieVelocity * zombie.State.SpeedFactor, 0f);
+        zombie.Collider.enabled = true;
         zombie.transform.position = _references.ZombieSpawn.position;
+    }
+
+    private static void DieEnemy(EnemyComponent enemy)
+    {
+        const float zombieCorpseVelocity = 50f;
+        enemy.Animator.SetTrigger(Die);
+        enemy.State.IsDead = true;
+        enemy.Collider.enabled = false;
+        enemy.RigidBody.velocity = new Vector2(-zombieCorpseVelocity, 0f);
     }
 
     private static void DeactivateZombie(int index)
