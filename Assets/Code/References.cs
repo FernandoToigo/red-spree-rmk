@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class References : MonoBehaviour
 {
-    public PixelPerfectCamera Camera;
+    public Camera Camera;
+    public PixelPerfectCamera PixelPerfectCamera;
     public PlayerComponent Player;
     public Transform GunNozzle;
     public Transform ZombieSpawn;
@@ -13,4 +14,6 @@ public class References : MonoBehaviour
     public BulletComponent[] Bullets;
     public Image[] UiBullets;
     public TMP_Text BulletsText;
+    public RectTransform CollectedBulletsParent;
+    public TMP_Text[] CollectedBulletVisuals;
 }

@@ -18,11 +18,11 @@ public static class Game
         State.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
         State.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
         State.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
-        var width = _references.Camera.refResolutionX + 30;
-        var height = _references.Camera.refResolutionY + 30;
+        var width = _references.PixelPerfectCamera.refResolutionX + 30;
+        var height = _references.PixelPerfectCamera.refResolutionY + 30;
         State.VisibilityBounds = new Rect(
-            _references.Camera.transform.position.x - width * 0.5f,
-            _references.Camera.transform.position.y - height * 0.5f,
+            _references.PixelPerfectCamera.transform.position.x - width * 0.5f,
+            _references.PixelPerfectCamera.transform.position.y - height * 0.5f,
             width,
             height);
         State.AvailableBulletCount = 3;
@@ -72,6 +72,7 @@ public static class Game
                 if (_references.Player.CollidedEnemies.Data[i].State.IsDead)
                 {
                     var bullets = Random.value <= 0.2f ? 2 : 1;
+                    report.CollectedBulletsSource = _references.Player.CollidedEnemies.Data[i].transform;
                     report.CollectedBullets += bullets;
                     State.AvailableBulletCount += bullets;
                 }
@@ -279,6 +280,7 @@ public static class Game
     {
         public bool BulletFired;
         public int CollectedBullets;
+        public Transform CollectedBulletsSource;
     }
 
     public struct Input
