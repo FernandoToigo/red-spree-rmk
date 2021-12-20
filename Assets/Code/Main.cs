@@ -7,6 +7,7 @@ public class Main : MonoBehaviour
     {
         var references = FindObjectOfType<References>();
         Game.Initialize(references);
+        UserInterface.Initialize(references);
     }
 
     public void FixedUpdate()
@@ -20,7 +21,8 @@ public class Main : MonoBehaviour
         };
         
         GameInput.Update(ref gameInput, hardInput);
-        Game.Update(gameInput, time);
+        var gameReport = Game.Update(gameInput, time);
+        UserInterface.Update(gameReport, time);
     }
 
     private static HardInput GetHardInput()

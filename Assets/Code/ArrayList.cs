@@ -9,7 +9,7 @@
             _emptyIndices[i] = i;
         }
 
-        _currentEmptyIndex = capacity - 1;
+        _currentEmptyIndex = 0;
         _tailIndex = -1;
         _headIndex = -1;
         Count = 0;
@@ -31,7 +31,7 @@
     public int Add(T value)
     {
         var index = _emptyIndices[_currentEmptyIndex];
-        _currentEmptyIndex--;
+        _currentEmptyIndex++;
         _data[index] = new ArrayListNode<T>
         {
             Value = value,
@@ -57,7 +57,7 @@
 
     public void Remove(ref ArrayListNode<T> node)
     {
-        _currentEmptyIndex++;
+        _currentEmptyIndex--;
         _emptyIndices[_currentEmptyIndex] = node.Index;
         if (node.HasPrevious)
         {

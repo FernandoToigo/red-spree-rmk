@@ -3,25 +3,30 @@ using UnityEngine;
 
 public static class Game
 {
-    private static readonly int Run = Animator.StringToHash("Run");
-    private static readonly int Die = Animator.StringToHash("Die");
+    private static readonly int ZombieRunAnimationTrigger = Animator.StringToHash("Run");
+    private static readonly int ZombieDieAnimationTrigger = Animator.StringToHash("Die");
+    private static readonly int PlayerDieAnimationTrigger = Animator.StringToHash("Died");
+    private const float ZombieVelocity = 50f;
+    private const float PlayerVelocity = 50f;
     private static References _references;
-    private static State _state;
+    public static GameState State;
 
     public static void Initialize(References references)
     {
         _references = references;
-        _state.ActiveBullets = new ArrayList<BulletComponent>(references.Bullets.Length);
-        _state.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
-        _state.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
-        _state.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
+        State.ActiveBullets = new ArrayList<BulletComponent>(references.Bullets.Length);
+        State.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
+        State.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
+        State.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
         var width = _references.Camera.refResolutionX + 30;
         var height = _references.Camera.refResolutionY + 30;
-        _state.VisibilityBounds = new Rect(
+        State.VisibilityBounds = new Rect(
             _references.Camera.transform.position.x - width * 0.5f,
             _references.Camera.transform.position.y - height * 0.5f,
             width,
             height);
+        State.AvailableBulletCount = 3;
+        State.PlayerVelocity = PlayerVelocity;
 
         InitializeBullets();
         InitializeZombies();
@@ -33,7 +38,7 @@ public static class Game
         {
             bullet.State.CollidedEnemies = new ReusableArray<EnemyComponent>(10);
             bullet.RigidBody.simulated = false;
-            _state.InactiveBullets.Push(bullet);
+            State.InactiveBullets.Push(bullet);
         }
     }
 
@@ -42,35 +47,63 @@ public static class Game
         foreach (var zombie in _references.Zombies)
         {
             zombie.RigidBody.simulated = false;
-            _state.InactiveZombies.Push(zombie);
+            State.InactiveZombies.Push(zombie);
         }
     }
 
-    public static void Update(Input input, FrameTime time)
+    public static Report Update(Input input, FrameTime time)
     {
-        TryFireStraight(input);
-        SpawnZombies(time);
+        var report = new Report();
+
+        TryFireStraight(input, ref report);
+        TryCollideWithEnemies(ref report);
+        TrySpawnZombies(time);
         UpdateBullets();
         UpdateZombies();
+        return report;
     }
 
-    private static void SpawnZombies(FrameTime time)
+    private static void TryCollideWithEnemies(ref Report report)
+    {
+        if (!State.IsDead)
+        {
+            for (var i = 0; i < _references.Player.CollidedEnemies.UsableLength; i++)
+            {
+                if (_references.Player.CollidedEnemies.Data[i].State.IsDead)
+                {
+                    var bullets = Random.value <= 0.2f ? 2 : 1;
+                    report.CollectedBullets += bullets;
+                    State.AvailableBulletCount += bullets;
+                }
+                else
+                {
+                    State.IsDead = true;
+                    State.PlayerVelocity = 0f;
+                    _references.Player.Animator.SetTrigger(PlayerDieAnimationTrigger);
+                }
+            }
+        }
+
+        _references.Player.CollidedEnemies.Clear();
+    }
+
+    private static void TrySpawnZombies(FrameTime time)
     {
         const float zombieTickSeconds = 0.25f;
-        _state.ZombieTickCooldown += time.DeltaSeconds;
+        State.ZombieTickCooldown += time.DeltaSeconds;
 
-        if (_state.ZombieTickCooldown < zombieTickSeconds)
+        if (State.ZombieTickCooldown < zombieTickSeconds)
         {
             return;
         }
 
-        _state.ZombieTickCooldown -= zombieTickSeconds;
+        State.ZombieTickCooldown -= zombieTickSeconds;
         var x = time.TotalSeconds;
         const float p = 15f;
         const float maxZombies = 3f;
         // https://www.desmos.com/calculator/1o7gniviux
         var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
-        var percentSpawned = Mathf.Clamp01(_state.ActiveZombies.Count / (waveFactor * maxZombies));
+        var percentSpawned = Mathf.Clamp01(State.ActiveZombies.Count / (waveFactor * maxZombies));
 
         if (Random.value < (1f - percentSpawned))
         {
@@ -80,12 +113,12 @@ public static class Game
 
     private static void UpdateBullets()
     {
-        if (_state.ActiveBullets.Count == 0)
+        if (State.ActiveBullets.Count == 0)
         {
             return;
         }
 
-        ref var bullet = ref _state.ActiveBullets.Tail();
+        ref var bullet = ref State.ActiveBullets.Tail();
 
         while (true)
         {
@@ -93,18 +126,23 @@ public static class Game
             for (var i = 0; i < bullet.Value.State.CollidedEnemies.UsableLength; i++)
             {
                 var enemy = bullet.Value.State.CollidedEnemies.Data[i];
+                if (enemy.State.IsDead)
+                {
+                    continue;
+                }
+
                 enemy.State.IsDead = true;
                 bullet.Value.State.RemainingHits--;
 
                 if (bullet.Value.State.RemainingHits <= 0)
                 {
-                    DieEnemy(enemy);
+                    KillEnemy(enemy);
                     shouldDeactivate = true;
                     break;
                 }
             }
 
-            if (!_state.VisibilityBounds.Contains(bullet.Value.transform.position))
+            if (!State.VisibilityBounds.Contains(bullet.Value.transform.position))
             {
                 shouldDeactivate = true;
             }
@@ -121,97 +159,126 @@ public static class Game
                 break;
             }
 
-            bullet = ref _state.ActiveBullets.Next(ref bullet);
+            bullet = ref State.ActiveBullets.Next(ref bullet);
         }
     }
 
     private static void UpdateZombies()
     {
-        if (_state.ActiveZombies.Count == 0)
+        if (State.ActiveZombies.Count == 0)
         {
             return;
         }
 
-        ref var zombie = ref _state.ActiveZombies.Tail();
+        ref var zombie = ref State.ActiveZombies.Tail();
 
         while (true)
         {
-            if (!_state.VisibilityBounds.Contains(zombie.Value.transform.position))
+            if (!State.VisibilityBounds.Contains(zombie.Value.transform.position))
             {
                 DeactivateZombie(ref zombie);
             }
+
+            zombie.Value.RigidBody.velocity = GetZombieVelocity(zombie.Value);
 
             if (!zombie.HasNext)
             {
                 break;
             }
 
-            zombie = ref _state.ActiveZombies.Next(ref zombie);
+            zombie = ref State.ActiveZombies.Next(ref zombie);
         }
     }
 
-    private static void TryFireStraight(Input input)
+    private static void TryFireStraight(Input input, ref Report report)
     {
+        if (State.IsDead)
+        {
+            return;
+        }
+        
         if (!input.FireStraight)
         {
             return;
         }
 
-        ActivateBullet();
+        if (State.AvailableBulletCount <= 0)
+        {
+            return;
+        }
+
+        State.AvailableBulletCount--;
+        report.BulletFired = true;
+        FireBullet(Vector2.right);
     }
 
-    private static void ActivateBullet()
+    private static void FireBullet(Vector2 direction)
     {
-        var bullet = _state.InactiveBullets.Pop();
+        const float bulletVelocity = 500f;
+        var bullet = State.InactiveBullets.Pop();
         bullet.State.RemainingHits = 1;
         bullet.RigidBody.simulated = true;
-        bullet.RigidBody.velocity = new Vector2(500f, 0f);
+        bullet.RigidBody.velocity = direction * bulletVelocity;
         bullet.transform.position = _references.GunNozzle.position;
-        _state.ActiveBullets.Add(bullet);
+        State.ActiveBullets.Add(bullet);
     }
 
     private static void DeactivateBullet(ref ArrayListNode<BulletComponent> bullet)
     {
-        _state.ActiveBullets.Remove(ref bullet);
-        _state.InactiveBullets.Push(bullet.Value);
+        State.ActiveBullets.Remove(ref bullet);
+        State.InactiveBullets.Push(bullet.Value);
         bullet.Value.RigidBody.simulated = false;
         bullet.Value.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
     private static void ActivateZombie()
     {
-        var zombie = _state.InactiveZombies.Pop();
+        var zombie = State.InactiveZombies.Pop();
+        zombie.State.IsDead = false;
         zombie.State.SpeedFactor = Random.Range(0.8f, 1.5f);
-        zombie.State.Index = _state.ActiveZombies.Add(zombie);
-        const float zombieVelocity = 100f;
+        zombie.State.Index = State.ActiveZombies.Add(zombie);
         zombie.RigidBody.simulated = true;
-        zombie.RigidBody.velocity = new Vector2(-zombieVelocity * zombie.State.SpeedFactor, 0f);
-        zombie.Collider.enabled = true;
+        zombie.RigidBody.velocity = GetZombieVelocity(zombie);
         zombie.transform.position = _references.ZombieSpawn.position;
-        zombie.Animator.SetTrigger(Run);
+        zombie.Animator.SetTrigger(ZombieRunAnimationTrigger);
     }
 
-    private static void DieEnemy(EnemyComponent enemy)
+    private static Vector2 GetZombieVelocity(EnemyComponent zombie)
     {
-        const float zombieCorpseVelocity = 50f;
-        enemy.Animator.ResetTrigger(Run);
-        enemy.Animator.SetTrigger(Die);
+        if (zombie.State.IsDead)
+        {
+            return new Vector2(-State.PlayerVelocity, 0f);
+        }
+        
+        var velocity = -(ZombieVelocity + State.PlayerVelocity) * zombie.State.SpeedFactor;
+        return new Vector2(velocity, 0f);
+    }
+
+    private static void KillEnemy(EnemyComponent enemy)
+    {
+        enemy.Animator.ResetTrigger(ZombieRunAnimationTrigger);
+        enemy.Animator.SetTrigger(ZombieDieAnimationTrigger);
         enemy.State.IsDead = true;
-        enemy.Collider.enabled = false;
-        enemy.RigidBody.velocity = new Vector2(-zombieCorpseVelocity, 0f);
+        enemy.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
     }
 
     private static void DeactivateZombie(int index)
     {
-        DeactivateZombie(ref _state.ActiveZombies.GetAt(index));
+        DeactivateZombie(ref State.ActiveZombies.GetAt(index));
     }
 
     private static void DeactivateZombie(ref ArrayListNode<EnemyComponent> zombie)
     {
-        _state.ActiveZombies.Remove(ref zombie);
-        _state.InactiveZombies.Push(zombie.Value);
+        State.ActiveZombies.Remove(ref zombie);
+        State.InactiveZombies.Push(zombie.Value);
         zombie.Value.RigidBody.simulated = false;
         zombie.Value.transform.position = new Vector3(-1000f, 0f, 0f);
+    }
+
+    public struct Report
+    {
+        public bool BulletFired;
+        public int CollectedBullets;
     }
 
     public struct Input
@@ -219,14 +286,17 @@ public static class Game
         public bool FireStraight;
         public bool FireDiagonally;
     }
+}
 
-    private struct State
-    {
-        public Rect VisibilityBounds;
-        public float ZombieTickCooldown;
-        public ArrayList<BulletComponent> ActiveBullets;
-        public Stack<BulletComponent> InactiveBullets;
-        public ArrayList<EnemyComponent> ActiveZombies;
-        public Stack<EnemyComponent> InactiveZombies;
-    }
+public struct GameState
+{
+    public float PlayerVelocity;
+    public bool IsDead;
+    public Rect VisibilityBounds;
+    public float ZombieTickCooldown;
+    public int AvailableBulletCount;
+    public ArrayList<BulletComponent> ActiveBullets;
+    public Stack<BulletComponent> InactiveBullets;
+    public ArrayList<EnemyComponent> ActiveZombies;
+    public Stack<EnemyComponent> InactiveZombies;
 }
