@@ -12,7 +12,6 @@ public class References : MonoBehaviour
     public Transform ZombieSpawn;
     public EnemyComponent[] Zombies;
     public BulletComponent[] Bullets;
-    public Image[] UiBullets;
     public TMP_Text BulletsText;
     public RectTransform CollectedBulletsParent;
     public TMP_Text[] CollectedBulletVisuals;

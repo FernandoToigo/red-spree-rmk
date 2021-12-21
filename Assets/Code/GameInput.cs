@@ -2,12 +2,12 @@
 {
     public static void Update(ref Game.Input gameInput, HardInput hardInput)
     {
-        if (hardInput.IsLeftMouseButtonDown)
+        if (hardInput.IsLeftMouseButtonDown || hardInput.IsCtrlKeyDown)
         {
             gameInput.FireStraight = true;
         }
 
-        if (hardInput.IsRightMouseButtonDown)
+        if (hardInput.IsRightMouseButtonDown || hardInput.IsShiftKeyDown)
         {
             gameInput.FireDiagonally = true;
         }

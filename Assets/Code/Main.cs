@@ -30,7 +30,9 @@ public class Main : MonoBehaviour
         return new HardInput
         {
             IsLeftMouseButtonDown = Mouse.current.leftButton.wasPressedThisFrame,
-            IsRightMouseButtonDown = Mouse.current.rightButton.wasPressedThisFrame
+            IsRightMouseButtonDown = Mouse.current.rightButton.wasPressedThisFrame,
+            IsCtrlKeyDown = Keyboard.current.ctrlKey.wasPressedThisFrame,
+            IsShiftKeyDown = Keyboard.current.shiftKey.wasPressedThisFrame
         };
     }
 }

@@ -71,7 +71,7 @@ public static class Game
             {
                 if (_references.Player.CollidedEnemies.Data[i].State.IsDead)
                 {
-                    var bullets = Random.value <= 0.2f ? 2 : 1;
+                    var bullets = Random.value <= 0.35f ? 2 : 1;
                     report.CollectedBulletsSource = _references.Player.CollidedEnemies.Data[i].transform;
                     report.CollectedBullets += bullets;
                     State.AvailableBulletCount += bullets;
@@ -209,7 +209,7 @@ public static class Game
         }
 
         State.AvailableBulletCount--;
-        report.BulletFired = true;
+        report.FiredBullet = true;
         FireBullet(Vector2.right);
     }
 
@@ -278,7 +278,7 @@ public static class Game
 
     public struct Report
     {
-        public bool BulletFired;
+        public bool FiredBullet;
         public int CollectedBullets;
         public Transform CollectedBulletsSource;
     }
