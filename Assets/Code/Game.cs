@@ -6,6 +6,7 @@ public static class Game
     private static readonly int ZombieRunAnimationTrigger = Animator.StringToHash("Run");
     private static readonly int ZombieDieAnimationTrigger = Animator.StringToHash("Die");
     private static readonly int PlayerDieAnimationTrigger = Animator.StringToHash("Died");
+    private static readonly int PlayerShotDiagonallyAnimationTrigger = Animator.StringToHash("ShotDiagonally");
     private const float ZombieVelocity = 50f;
     private const float PlayerVelocity = 50f;
     private static References _references;
@@ -56,6 +57,7 @@ public static class Game
         var report = new Report();
 
         TryFireStraight(input, ref report);
+        TryFireDiagonally(input, ref report);
         TryCollideWithEnemies(ref report);
         TrySpawnZombies(time);
         UpdateBullets();
@@ -193,34 +195,56 @@ public static class Game
 
     private static void TryFireStraight(Input input, ref Report report)
     {
-        if (State.IsDead)
-        {
-            return;
-        }
-        
         if (!input.FireStraight)
         {
             return;
         }
+        
+        TryFire(input, ref report, _references.StraightGunNozzle, Vector2.right);
+    }
 
-        if (State.AvailableBulletCount <= 0)
+    private static void TryFireDiagonally(Input input, ref Report report)
+    {
+        if (!input.FireDiagonally)
         {
             return;
         }
 
-        State.AvailableBulletCount--;
-        report.FiredBullet = true;
-        FireBullet(Vector2.right);
+        if (TryFire(input, ref report, _references.DiagonalGunNozzle, (Vector2.right + Vector2.up).normalized))
+        {
+            _references.Player.Animator.ResetTrigger(PlayerShotDiagonallyAnimationTrigger);
+            _references.Player.Animator.SetTrigger(PlayerShotDiagonallyAnimationTrigger);
+        }
     }
 
-    private static void FireBullet(Vector2 direction)
+    private static bool TryFire(Input input, ref Report report, Transform origin, Vector2 direction)
+    {
+        if (State.IsDead)
+        {
+            return false;
+        }
+        
+        if (State.AvailableBulletCount <= 0)
+        {
+            return false;
+        }
+
+        State.AvailableBulletCount--;
+        report.FiredBullet = true;
+        FireBullet(origin, direction);
+        return true;
+    }
+    
+    private static void FireBullet(Transform origin, Vector2 direction)
     {
         const float bulletVelocity = 500f;
         var bullet = State.InactiveBullets.Pop();
         bullet.State.RemainingHits = 1;
         bullet.RigidBody.simulated = true;
         bullet.RigidBody.velocity = direction * bulletVelocity;
-        bullet.transform.position = _references.GunNozzle.position;
+        bullet.transform.position = origin.position;
+        var upwards = Vector3.Cross(Vector3.forward, direction);
+        bullet.transform.localRotation = Quaternion.LookRotation(Vector3.forward, upwards);
         State.ActiveBullets.Add(bullet);
     }
 

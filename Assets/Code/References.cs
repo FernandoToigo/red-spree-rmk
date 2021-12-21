@@ -8,7 +8,8 @@ public class References : MonoBehaviour
     public Camera Camera;
     public PixelPerfectCamera PixelPerfectCamera;
     public PlayerComponent Player;
-    public Transform GunNozzle;
+    public Transform StraightGunNozzle;
+    public Transform DiagonalGunNozzle;
     public Transform ZombieSpawn;
     public EnemyComponent[] Zombies;
     public BulletComponent[] Bullets;
