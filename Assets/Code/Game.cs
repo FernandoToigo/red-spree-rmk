@@ -19,8 +19,8 @@ public static class Game
         State.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
         State.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
         State.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
-        var width = _references.PixelPerfectCamera.refResolutionX + 30;
-        var height = _references.PixelPerfectCamera.refResolutionY + 30;
+        var width = _references.PixelPerfectCamera.refResolutionX + 50;
+        var height = _references.PixelPerfectCamera.refResolutionY + 50;
         State.VisibilityBounds = new Rect(
             _references.PixelPerfectCamera.transform.position.x - width * 0.5f,
             _references.PixelPerfectCamera.transform.position.y - height * 0.5f,
