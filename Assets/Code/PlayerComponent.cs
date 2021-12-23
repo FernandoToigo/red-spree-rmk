@@ -2,6 +2,7 @@
 
 public class PlayerComponent : MonoBehaviour
 {
+    public Transform Center;
     public Animator Animator;
     public ReusableArray<EnemyComponent> CollidedEnemies = new ReusableArray<EnemyComponent>(10);
     

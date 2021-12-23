@@ -62,6 +62,66 @@ TextureImporter:
   - first:
       213: 21300038
     second: FlyingMonster_19
+  - first:
+      213: 4459375526149536167
+    second: FlyingMonster_0
+  - first:
+      213: 117753842549301492
+    second: FlyingMonster_1
+  - first:
+      213: -5279327915483768981
+    second: FlyingMonster_2
+  - first:
+      213: 3254793670729785892
+    second: FlyingMonster_3
+  - first:
+      213: -6958706199002110025
+    second: FlyingMonster_4
+  - first:
+      213: -2824191329387562927
+    second: FlyingMonster_5
+  - first:
+      213: 1563666102651331639
+    second: FlyingMonster_6
+  - first:
+      213: 5739071106501412546
+    second: FlyingMonster_7
+  - first:
+      213: -3490674061486767854
+    second: FlyingMonster_8
+  - first:
+      213: -4600882687959681039
+    second: FlyingMonster_9
+  - first:
+      213: 4244163435479523679
+    second: FlyingMonster_10
+  - first:
+      213: 3191757963789811664
+    second: FlyingMonster_11
+  - first:
+      213: -5151553213332603675
+    second: FlyingMonster_12
+  - first:
+      213: 2786212591267283051
+    second: FlyingMonster_13
+  - first:
+      213: 1507729398481141184
+    second: FlyingMonster_14
+  - first:
+      213: -3251861314221151677
+    second: FlyingMonster_15
+  - first:
+      213: -4279395127469172019
+    second: FlyingMonster_16
+  - first:
+      213: 8686470371033422021
+    second: FlyingMonster_17
+  - first:
+      213: 474480047377751139
+    second: FlyingMonster_18
+  - first:
+      213: -6462358734756370171
+    second: FlyingMonster_19
   externalObjects: {}
   serializedVersion: 11
   mipmaps:
@@ -106,7 +166,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 1
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -155,18 +215,18 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 320
-        width: 64
-        height: 64
+        y: 160
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 02305410000000000800000000000000
-      internalID: 21300000
+      spriteID: 7a9b63c0a62e2ed30800000000000000
+      internalID: 4459375526149536167
       vertices: []
       indices: 
       edges: []
@@ -175,19 +235,19 @@ TextureImporter:
       name: FlyingMonster_1
       rect:
         serializedVersion: 2
-        x: 64
-        y: 320
-        width: 64
-        height: 64
+        x: 32
+        y: 160
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 22305410000000000800000000000000
-      internalID: 21300002
+      spriteID: 4f0a614fe7852a100800000000000000
+      internalID: 117753842549301492
       vertices: []
       indices: 
       edges: []
@@ -196,19 +256,19 @@ TextureImporter:
       name: FlyingMonster_2
       rect:
         serializedVersion: 2
-        x: 128
-        y: 320
-        width: 64
-        height: 64
+        x: 64
+        y: 160
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 42305410000000000800000000000000
-      internalID: 21300004
+      spriteID: b6759c06b3f0cb6b0800000000000000
+      internalID: -5279327915483768981
       vertices: []
       indices: 
       edges: []
@@ -217,19 +277,19 @@ TextureImporter:
       name: FlyingMonster_3
       rect:
         serializedVersion: 2
-        x: 192
-        y: 320
-        width: 64
-        height: 64
+        x: 96
+        y: 160
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 62305410000000000800000000000000
-      internalID: 21300006
+      spriteID: 422e90159995b2d20800000000000000
+      internalID: 3254793670729785892
       vertices: []
       indices: 
       edges: []
@@ -239,18 +299,18 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 256
-        width: 64
-        height: 64
+        y: 128
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 82305410000000000800000000000000
-      internalID: 21300008
+      spriteID: 7b7ab20b495bd6f90800000000000000
+      internalID: -6958706199002110025
       vertices: []
       indices: 
       edges: []
@@ -259,19 +319,19 @@ TextureImporter:
       name: FlyingMonster_5
       rect:
         serializedVersion: 2
-        x: 64
-        y: 256
-        width: 64
-        height: 64
+        x: 32
+        y: 128
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a2305410000000000800000000000000
-      internalID: 21300010
+      spriteID: 158bd1af2f47ec8d0800000000000000
+      internalID: -2824191329387562927
       vertices: []
       indices: 
       edges: []
@@ -280,19 +340,19 @@ TextureImporter:
       name: FlyingMonster_6
       rect:
         serializedVersion: 2
-        x: 128
-        y: 256
-        width: 64
-        height: 64
+        x: 64
+        y: 128
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: c2305410000000000800000000000000
-      internalID: 21300012
+      spriteID: 7342ad3290243b510800000000000000
+      internalID: 1563666102651331639
       vertices: []
       indices: 
       edges: []
@@ -301,19 +361,19 @@ TextureImporter:
       name: FlyingMonster_7
       rect:
         serializedVersion: 2
-        x: 192
-        y: 256
-        width: 64
-        height: 64
+        x: 96
+        y: 128
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: e2305410000000000800000000000000
-      internalID: 21300014
+      spriteID: 2c689b3b3c645af40800000000000000
+      internalID: 5739071106501412546
       vertices: []
       indices: 
       edges: []
@@ -323,18 +383,18 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 192
-        width: 64
-        height: 64
+        y: 96
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 03305410000000000800000000000000
-      internalID: 21300016
+      spriteID: 211496a7f62ae8fc0800000000000000
+      internalID: -3490674061486767854
       vertices: []
       indices: 
       edges: []
@@ -343,19 +403,19 @@ TextureImporter:
       name: FlyingMonster_9
       rect:
         serializedVersion: 2
-        x: 64
-        y: 192
-        width: 64
-        height: 64
+        x: 32
+        y: 96
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 23305410000000000800000000000000
-      internalID: 21300018
+      spriteID: 1f73be262916620c0800000000000000
+      internalID: -4600882687959681039
       vertices: []
       indices: 
       edges: []
@@ -364,19 +424,19 @@ TextureImporter:
       name: FlyingMonster_10
       rect:
         serializedVersion: 2
-        x: 128
-        y: 192
-        width: 64
-        height: 64
+        x: 64
+        y: 96
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 43305410000000000800000000000000
-      internalID: 21300020
+      spriteID: f516574782c46ea30800000000000000
+      internalID: 4244163435479523679
       vertices: []
       indices: 
       edges: []
@@ -386,18 +446,18 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 128
-        width: 64
-        height: 64
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 63305410000000000800000000000000
-      internalID: 21300022
+      spriteID: 0df37b815f66b4c20800000000000000
+      internalID: 3191757963789811664
       vertices: []
       indices: 
       edges: []
@@ -406,19 +466,19 @@ TextureImporter:
       name: FlyingMonster_12
       rect:
         serializedVersion: 2
-        x: 64
-        y: 128
-        width: 64
-        height: 64
+        x: 32
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 83305410000000000800000000000000
-      internalID: 21300024
+      spriteID: 5ecb9c585a10288b0800000000000000
+      internalID: -5151553213332603675
       vertices: []
       indices: 
       edges: []
@@ -427,19 +487,19 @@ TextureImporter:
       name: FlyingMonster_13
       rect:
         serializedVersion: 2
-        x: 128
-        y: 128
-        width: 64
-        height: 64
+        x: 64
+        y: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: a3305410000000000800000000000000
-      internalID: 21300026
+      spriteID: b60053bf69d9aa620800000000000000
+      internalID: 2786212591267283051
       vertices: []
       indices: 
       edges: []
@@ -449,18 +509,18 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 64
-        height: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: c3305410000000000800000000000000
-      internalID: 21300028
+      spriteID: 0cdb1ed46e78ce410800000000000000
+      internalID: 1507729398481141184
       vertices: []
       indices: 
       edges: []
@@ -469,19 +529,19 @@ TextureImporter:
       name: FlyingMonster_15
       rect:
         serializedVersion: 2
-        x: 64
-        y: 64
-        width: 64
-        height: 64
+        x: 32
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: e3305410000000000800000000000000
-      internalID: 21300030
+      spriteID: 34a63032d511fd2d0800000000000000
+      internalID: -3251861314221151677
       vertices: []
       indices: 
       edges: []
@@ -490,19 +550,19 @@ TextureImporter:
       name: FlyingMonster_16
       rect:
         serializedVersion: 2
-        x: 128
-        y: 64
-        width: 64
-        height: 64
+        x: 64
+        y: 32
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 04305410000000000800000000000000
-      internalID: 21300032
+      spriteID: dca99a50ec88c94c0800000000000000
+      internalID: -4279395127469172019
       vertices: []
       indices: 
       edges: []
@@ -513,17 +573,17 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 24305410000000000800000000000000
-      internalID: 21300034
+      spriteID: 5c8176197ca8c8870800000000000000
+      internalID: 8686470371033422021
       vertices: []
       indices: 
       edges: []
@@ -532,19 +592,19 @@ TextureImporter:
       name: FlyingMonster_18
       rect:
         serializedVersion: 2
-        x: 64
+        x: 32
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 44305410000000000800000000000000
-      internalID: 21300036
+      spriteID: 36c16f4d611b59600800000000000000
+      internalID: 474480047377751139
       vertices: []
       indices: 
       edges: []
@@ -553,19 +613,19 @@ TextureImporter:
       name: FlyingMonster_19
       rect:
         serializedVersion: 2
-        x: 128
+        x: 64
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 64305410000000000800000000000000
-      internalID: 21300038
+      spriteID: 50924b348f61156a0800000000000000
+      internalID: -6462358734756370171
       vertices: []
       indices: 
       edges: []

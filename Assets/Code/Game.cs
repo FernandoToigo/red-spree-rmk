@@ -8,6 +8,7 @@ public static class Game
     private static readonly int PlayerDieAnimationTrigger = Animator.StringToHash("Died");
     private static readonly int PlayerShotDiagonallyAnimationTrigger = Animator.StringToHash("ShotDiagonally");
     private const float ZombieVelocity = 50f;
+    private const float VultureVelocity = 100f;
     private const float PlayerVelocity = 50f;
     private static References _references;
     public static GameState State;
@@ -15,29 +16,39 @@ public static class Game
     public static void Initialize(References references)
     {
         _references = references;
-        State.ActiveBullets = new ArrayList<BulletComponent>(references.Bullets.Length);
-        State.InactiveBullets = new Stack<BulletComponent>(references.Bullets.Length);
-        State.ActiveZombies = new ArrayList<EnemyComponent>(references.Zombies.Length);
-        State.InactiveZombies = new Stack<EnemyComponent>(references.Zombies.Length);
+        State.PlayerVelocity = PlayerVelocity;
+
+        InitializeBounds();
+        InitializeBullets();
+        InitializeZombies();
+        InitializeVultures();
+    }
+
+    private static void InitializeBounds()
+    {
+        var cameraPosition = _references.PixelPerfectCamera.transform.position;
         var width = _references.PixelPerfectCamera.refResolutionX + 50;
         var height = _references.PixelPerfectCamera.refResolutionY + 50;
         State.VisibilityBounds = new Rect(
-            _references.PixelPerfectCamera.transform.position.x - width * 0.5f,
-            _references.PixelPerfectCamera.transform.position.y - height * 0.5f,
+            cameraPosition.x - width * 0.5f,
+            cameraPosition.y - height * 0.5f,
             width,
             height);
-        State.AvailableBulletCount = 3;
-        State.PlayerVelocity = PlayerVelocity;
-
-        InitializeBullets();
-        InitializeZombies();
+        State.VultureMinHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * -0.5f + 5;
+        State.VultureMaxHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.5f - 5;
+        State.VultureDiveHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.15f;
     }
 
     private static void InitializeBullets()
     {
+        State.AvailableBulletCount = 3;
+        State.ActiveBullets = new ArrayList<BulletComponent>(_references.Bullets.Length);
+        State.InactiveBullets = new Stack<BulletComponent>(_references.Bullets.Length);
+
         foreach (var bullet in _references.Bullets)
         {
-            bullet.State.CollidedEnemies = new ReusableArray<EnemyComponent>(10);
+            bullet.State.CollidedZombies = new ReusableArray<EnemyComponent>(10);
+            bullet.State.CollidedVultures = new ReusableArray<EnemyComponent>(10);
             bullet.RigidBody.simulated = false;
             State.InactiveBullets.Push(bullet);
         }
@@ -45,10 +56,25 @@ public static class Game
 
     private static void InitializeZombies()
     {
+        State.ActiveZombies = new ArrayList<EnemyComponent>(_references.Zombies.Length);
+        State.InactiveZombies = new Stack<EnemyComponent>(_references.Zombies.Length);
+
         foreach (var zombie in _references.Zombies)
         {
             zombie.RigidBody.simulated = false;
             State.InactiveZombies.Push(zombie);
+        }
+    }
+
+    private static void InitializeVultures()
+    {
+        State.Vultures = new ArrayList<Vulture>(_references.Vultures.Length);
+        State.InactiveVultures = new Stack<EnemyComponent>(_references.Vultures.Length);
+
+        foreach (var vulture in _references.Vultures)
+        {
+            vulture.RigidBody.simulated = false;
+            State.InactiveVultures.Push(vulture);
         }
     }
 
@@ -60,8 +86,10 @@ public static class Game
         TryFireDiagonally(input, ref report);
         TryCollideWithEnemies(ref report);
         TrySpawnZombies(time);
+        TrySpawnVultures(time);
         UpdateBullets();
         UpdateZombies();
+        UpdateVultures();
         return report;
     }
 
@@ -73,7 +101,7 @@ public static class Game
             {
                 if (_references.Player.CollidedEnemies.Data[i].State.IsDead)
                 {
-                    var bullets = Random.value <= 0.35f ? 2 : 1;
+                    var bullets = Random.value <= 0.5f ? 2 : 1;
                     report.CollectedBulletsSource = _references.Player.CollidedEnemies.Data[i].transform;
                     report.CollectedBullets += bullets;
                     State.AvailableBulletCount += bullets;
@@ -114,6 +142,55 @@ public static class Game
         }
     }
 
+    private static void TrySpawnVultures(FrameTime time)
+    {
+        const float vultureTickSeconds = 0.25f;
+        State.VultureTickCooldown += time.DeltaSeconds;
+
+        if (State.VultureTickCooldown < vultureTickSeconds)
+        {
+            return;
+        }
+
+        State.VultureTickCooldown -= vultureTickSeconds;
+        var x = time.TotalSeconds;
+        const float p = 35f;
+        const float vulturesFactor = 1f;
+        // https://www.desmos.com/calculator/1o7gniviux
+        var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
+        
+        var desiredSpawnCount = Mathf.FloorToInt(waveFactor * vulturesFactor);
+        if (desiredSpawnCount == 0)
+        {
+            return;
+        }
+
+        var percentSpawned = Mathf.Clamp01((float)State.Vultures.Count / desiredSpawnCount);
+
+        if (Random.value < (1f - percentSpawned))
+        {
+            ActivateVulture();
+        }
+    }
+
+    private static void ActivateVulture()
+    {
+        var vultureComponent = State.InactiveVultures.Pop();
+        vultureComponent.State.IsDead = false;
+        vultureComponent.State.SpeedFactor = Random.Range(0.8f, 1.5f);
+        vultureComponent.State.Index = State.Vultures.Add(new Vulture
+        {
+            Action = VultureAction.FlyingLeft,
+            LapsMade = 0,
+            EnemyComponent = vultureComponent
+        });
+        vultureComponent.RigidBody.simulated = true;
+        vultureComponent.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+        vultureComponent.transform.position = Vector3.Lerp(_references.MinVultureSpawn.position,
+            _references.MaxVultureSpawn.position, Random.value);
+        vultureComponent.Animator.Play(VultureAnimations.FlyingLeft);
+    }
+
     private static void UpdateBullets()
     {
         if (State.ActiveBullets.Count == 0)
@@ -126,9 +203,9 @@ public static class Game
         while (true)
         {
             var shouldDeactivate = false;
-            for (var i = 0; i < bullet.Value.State.CollidedEnemies.UsableLength; i++)
+            for (var i = 0; i < bullet.Value.State.CollidedZombies.UsableLength; i++)
             {
-                var enemy = bullet.Value.State.CollidedEnemies.Data[i];
+                var enemy = bullet.Value.State.CollidedZombies.Data[i];
                 if (enemy.State.IsDead)
                 {
                     continue;
@@ -139,11 +216,34 @@ public static class Game
 
                 if (bullet.Value.State.RemainingHits <= 0)
                 {
-                    KillEnemy(enemy);
+                    KillZombie(enemy);
                     shouldDeactivate = true;
                     break;
                 }
             }
+
+            for (var i = 0; i < bullet.Value.State.CollidedVultures.UsableLength; i++)
+            {
+                var enemy = bullet.Value.State.CollidedVultures.Data[i];
+                if (enemy.State.IsDead)
+                {
+                    continue;
+                }
+
+                enemy.State.IsDead = true;
+                bullet.Value.State.RemainingHits--;
+
+                if (bullet.Value.State.RemainingHits <= 0)
+                {
+                    ref var vulture = ref State.Vultures.GetAt(enemy.State.Index);
+                    KillVulture(ref vulture.Value);
+                    shouldDeactivate = true;
+                    break;
+                }
+            }
+
+            bullet.Value.State.CollidedZombies.Clear();
+            bullet.Value.State.CollidedVultures.Clear();
 
             if (!State.VisibilityBounds.Contains(bullet.Value.transform.position))
             {
@@ -154,8 +254,6 @@ public static class Game
             {
                 DeactivateBullet(ref bullet);
             }
-
-            bullet.Value.State.CollidedEnemies.Clear();
 
             if (!bullet.HasNext)
             {
@@ -193,13 +291,87 @@ public static class Game
         }
     }
 
+    private static void UpdateVultures()
+    {
+        if (State.Vultures.Count == 0)
+        {
+            return;
+        }
+
+        ref var vulture = ref State.Vultures.Tail();
+
+        while (true)
+        {
+            switch (vulture.Value.Action)
+            {
+                case VultureAction.FlyingLeft:
+                    if (vulture.Value.EnemyComponent.transform.position.x < State.VultureMinHorizontalPosition)
+                    {
+                        vulture.Value.Action = VultureAction.FlyingRight;
+                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.FlyingRight);
+                        vulture.Value.EnemyComponent.RigidBody.velocity = new Vector2(VultureVelocity, 0f);
+                    }
+
+                    break;
+                case VultureAction.FlyingRight:
+                    if (vulture.Value.EnemyComponent.transform.position.x > State.VultureMaxHorizontalPosition)
+                    {
+                        vulture.Value.LapsMade++;
+                        if (vulture.Value.LapsMade < 2)
+                        {
+                            vulture.Value.Action = VultureAction.FlyingLeft;
+                        }
+                        else
+                        {
+                            vulture.Value.Action = VultureAction.PreparingDive;
+                        }
+
+                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.FlyingLeft);
+                        vulture.Value.EnemyComponent.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+                    }
+
+                    break;
+                case VultureAction.PreparingDive:
+                    if (vulture.Value.EnemyComponent.transform.position.x <= State.VultureDiveHorizontalPosition)
+                    {
+                        vulture.Value.Action = VultureAction.Diving;
+                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.Diving);
+                        var toPlayer = _references.Player.Center.position -
+                                       vulture.Value.EnemyComponent.transform.position;
+                        vulture.Value.EnemyComponent.RigidBody.velocity = toPlayer.normalized * VultureVelocity;
+                    }
+
+                    break;
+                case VultureAction.Diving:
+                    break;
+
+                case VultureAction.Dying:
+                    var animatorState = vulture.Value.EnemyComponent.Animator.GetCurrentAnimatorStateInfo(0);
+                    if ((animatorState.IsName(VultureAnimations.DyingLeft) ||
+                         animatorState.IsName(VultureAnimations.DyingRight)) && animatorState.normalizedTime >= 1f)
+                    {
+                        DeactivateVulture(ref vulture);
+                    }
+
+                    break;
+            }
+
+            if (!vulture.HasNext)
+            {
+                break;
+            }
+
+            vulture = ref State.Vultures.Next(ref vulture);
+        }
+    }
+
     private static void TryFireStraight(Input input, ref Report report)
     {
         if (!input.FireStraight)
         {
             return;
         }
-        
+
         TryFire(input, ref report, _references.StraightGunNozzle, Vector2.right);
     }
 
@@ -223,7 +395,7 @@ public static class Game
         {
             return false;
         }
-        
+
         if (State.AvailableBulletCount <= 0)
         {
             return false;
@@ -234,7 +406,7 @@ public static class Game
         FireBullet(origin, direction);
         return true;
     }
-    
+
     private static void FireBullet(Transform origin, Vector2 direction)
     {
         const float bulletVelocity = 500f;
@@ -274,22 +446,25 @@ public static class Game
         {
             return new Vector2(-State.PlayerVelocity, 0f);
         }
-        
+
         var velocity = -(ZombieVelocity + State.PlayerVelocity) * zombie.State.SpeedFactor;
         return new Vector2(velocity, 0f);
     }
 
-    private static void KillEnemy(EnemyComponent enemy)
+    private static void KillZombie(EnemyComponent zombie)
     {
-        enemy.Animator.ResetTrigger(ZombieRunAnimationTrigger);
-        enemy.Animator.SetTrigger(ZombieDieAnimationTrigger);
-        enemy.State.IsDead = true;
-        enemy.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
+        zombie.Animator.ResetTrigger(ZombieRunAnimationTrigger);
+        zombie.Animator.SetTrigger(ZombieDieAnimationTrigger);
+        zombie.State.IsDead = true;
+        zombie.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
     }
 
-    private static void DeactivateZombie(int index)
+    private static void KillVulture(ref Vulture vulture)
     {
-        DeactivateZombie(ref State.ActiveZombies.GetAt(index));
+        vulture.EnemyComponent.Animator.Play(VultureAnimations.DyingLeft);
+        vulture.EnemyComponent.State.IsDead = true;
+        vulture.EnemyComponent.RigidBody.velocity = new Vector2(50f, 50f);
+        vulture.Action = VultureAction.Dying;
     }
 
     private static void DeactivateZombie(ref ArrayListNode<EnemyComponent> zombie)
@@ -298,6 +473,14 @@ public static class Game
         State.InactiveZombies.Push(zombie.Value);
         zombie.Value.RigidBody.simulated = false;
         zombie.Value.transform.position = new Vector3(-1000f, 0f, 0f);
+    }
+
+    private static void DeactivateVulture(ref ArrayListNode<Vulture> vulture)
+    {
+        State.Vultures.Remove(ref vulture);
+        State.InactiveVultures.Push(vulture.Value.EnemyComponent);
+        vulture.Value.EnemyComponent.RigidBody.simulated = false;
+        vulture.Value.EnemyComponent.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
     public struct Report
@@ -314,15 +497,37 @@ public static class Game
     }
 }
 
+public struct Vulture
+{
+    public int LapsMade;
+    public VultureAction Action;
+    public EnemyComponent EnemyComponent;
+}
+
+public enum VultureAction
+{
+    FlyingLeft,
+    FlyingRight,
+    PreparingDive,
+    Diving,
+    Dying
+}
+
 public struct GameState
 {
     public float PlayerVelocity;
     public bool IsDead;
     public Rect VisibilityBounds;
     public float ZombieTickCooldown;
+    public float VultureTickCooldown;
+    public float VultureMinHorizontalPosition;
+    public float VultureMaxHorizontalPosition;
+    public float VultureDiveHorizontalPosition;
     public int AvailableBulletCount;
+    public ArrayList<Vulture> Vultures;
     public ArrayList<BulletComponent> ActiveBullets;
     public Stack<BulletComponent> InactiveBullets;
     public ArrayList<EnemyComponent> ActiveZombies;
     public Stack<EnemyComponent> InactiveZombies;
+    public Stack<EnemyComponent> InactiveVultures;
 }
