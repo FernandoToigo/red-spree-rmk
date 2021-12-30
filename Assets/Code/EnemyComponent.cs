@@ -3,7 +3,7 @@
 public class EnemyComponent : MonoBehaviour
 {
     public EnemyState State;
-    public Rigidbody2D RigidBody;
+    public Rigidbody RigidBody;
     public Animator Animator;
 
     public struct EnemyState

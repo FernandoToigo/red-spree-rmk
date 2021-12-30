@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 4909444225497751599}
   - component: {fileID: 4909444225497751596}
   - component: {fileID: 4909444225497751597}
-  - component: {fileID: 2669891490862949893}
-  - component: {fileID: 6301619873084957461}
   - component: {fileID: 7591037756896757776}
+  - component: {fileID: 8368727531730423662}
+  - component: {fileID: 8826101911279716805}
   m_Layer: 6
   m_Name: Zombie
   m_TagString: Zombie
@@ -105,53 +105,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!61 &2669891490862949893
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4909444225497751570}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 2.9750786, y: 15.5}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.469697, y: 0.015625}
-    oldSize: {x: 32, y: 32}
-    newSize: {x: 32, y: 32}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 15.782572, y: 32}
-  m_EdgeRadius: 0
---- !u!50 &6301619873084957461
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4909444225497751570}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0.05
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
 --- !u!114 &7591037756896757776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,5 +117,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d3aa07f503c429ab692ed76f61b946a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RigidBody: {fileID: 6301619873084957461}
+  RigidBody: {fileID: 8368727531730423662}
   Animator: {fileID: 4909444225497751597}
+--- !u!54 &8368727531730423662
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4909444225497751570}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 120
+  m_CollisionDetection: 0
+--- !u!65 &8826101911279716805
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4909444225497751570}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 16.200836, y: 32, z: 0.2}
+  m_Center: {x: 4.18309, y: 15.5, z: 0}

@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 
+[ExecuteInEditMode]
 public class BulletComponent : MonoBehaviour
 {
     private const string ZombieTag = "Zombie";
     private const string VultureTag = "Vulture";
     public BulletState State;
-    public Rigidbody2D RigidBody;
+    public Rigidbody RigidBody;
 
-    private void OnTriggerEnter2D(Collider2D collider)
+    private void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.CompareTag(ZombieTag))
         {
