@@ -1,15 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class EnemyComponent : MonoBehaviour
 {
-    public EnemyState State;
+    [NonSerialized] public int Index;
     public Rigidbody RigidBody;
     public Animator Animator;
-
-    public struct EnemyState
-    {
-        public bool IsDead;
-        public int Index;
-        public float SpeedFactor;
-    }
 }

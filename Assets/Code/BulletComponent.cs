@@ -1,29 +1,26 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [ExecuteInEditMode]
 public class BulletComponent : MonoBehaviour
 {
     private const string ZombieTag = "Zombie";
     private const string VultureTag = "Vulture";
-    public BulletState State;
     public Rigidbody RigidBody;
+    
+    [NonSerialized] public int Index;
+    [NonSerialized] public ReusableArray<EnemyComponent> CollidedZombies;
+    [NonSerialized] public ReusableArray<EnemyComponent> CollidedVultures;
 
     private void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.CompareTag(ZombieTag))
         {
-            State.CollidedZombies.Add(collider.gameObject.GetComponent<EnemyComponent>());
+            CollidedZombies.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
         else if (collider.gameObject.CompareTag(VultureTag))
         {
-            State.CollidedVultures.Add(collider.gameObject.GetComponent<EnemyComponent>());
+            CollidedVultures.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
-    }
-
-    public struct BulletState
-    {
-        public int RemainingHits;
-        public ReusableArray<EnemyComponent> CollidedZombies;
-        public ReusableArray<EnemyComponent> CollidedVultures;
     }
 }

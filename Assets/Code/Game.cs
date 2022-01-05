@@ -43,47 +43,49 @@ public static class Game
             cameraPosition.y - height * 0.5f,
             width,
             height);
-        State.VultureMinHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * -0.5f + 5;
-        State.VultureMaxHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.5f - 5;
+        State.VultureMinHorizontalPosition =
+            cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * -0.5f + 5;
+        State.VultureMaxHorizontalPosition =
+            cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.5f - 5;
         State.VultureDiveHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.15f;
     }
 
     private static void InitializeBullets()
     {
         State.AvailableBulletCount = 3;
-        State.ActiveBullets = new ArrayList<BulletComponent>(_references.Bullets.Length);
-        State.InactiveBullets = new Stack<BulletComponent>(_references.Bullets.Length);
+        State.Bullets = new ArrayList<Bullet>(_references.Bullets.Length);
+        State.AvailableBulletComponents = new Stack<BulletComponent>(_references.Bullets.Length);
 
         foreach (var bullet in _references.Bullets)
         {
-            bullet.State.CollidedZombies = new ReusableArray<EnemyComponent>(10);
-            bullet.State.CollidedVultures = new ReusableArray<EnemyComponent>(10);
+            bullet.CollidedZombies = new ReusableArray<EnemyComponent>(10);
+            bullet.CollidedVultures = new ReusableArray<EnemyComponent>(10);
             bullet.RigidBody.detectCollisions = false;
-            State.InactiveBullets.Push(bullet);
+            State.AvailableBulletComponents.Push(bullet);
         }
     }
 
     private static void InitializeZombies()
     {
-        State.ActiveZombies = new ArrayList<EnemyComponent>(_references.Zombies.Length);
-        State.InactiveZombies = new Stack<EnemyComponent>(_references.Zombies.Length);
+        State.Zombies = new ArrayList<Zombie>(_references.Zombies.Length);
+        State.AvailableZombieComponents = new Stack<EnemyComponent>(_references.Zombies.Length);
 
         foreach (var zombie in _references.Zombies)
         {
             zombie.RigidBody.detectCollisions = false;
-            State.InactiveZombies.Push(zombie);
+            State.AvailableZombieComponents.Push(zombie);
         }
     }
 
     private static void InitializeVultures()
     {
         State.Vultures = new ArrayList<Vulture>(_references.Vultures.Length);
-        State.InactiveVultures = new Stack<EnemyComponent>(_references.Vultures.Length);
+        State.AvailableVultureComponents = new Stack<EnemyComponent>(_references.Vultures.Length);
 
         foreach (var vulture in _references.Vultures)
         {
             vulture.RigidBody.detectCollisions = false;
-            State.InactiveVultures.Push(vulture);
+            State.AvailableVultureComponents.Push(vulture);
         }
     }
 
@@ -100,7 +102,7 @@ public static class Game
         UpdateZombies();
         UpdateVultures();
         UpdatePhysics(time);
-        
+
         return report;
     }
 
@@ -115,7 +117,8 @@ public static class Game
         {
             for (var i = 0; i < _references.Player.CollidedEnemies.UsableLength; i++)
             {
-                if (_references.Player.CollidedEnemies.Data[i].State.IsDead)
+                ref var enemyNode = ref State.Zombies.GetAt(_references.Player.CollidedEnemies.Data[i].Index);
+                if (enemyNode.Value.IsDead)
                 {
                     var bullets = Random.value <= 0.5f ? 2 : 1;
                     report.CollectedBulletsSource = _references.Player.CollidedEnemies.Data[i].transform;
@@ -150,7 +153,7 @@ public static class Game
         const float maxZombies = 3f;
         // https://www.desmos.com/calculator/1o7gniviux
         var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
-        var percentSpawned = Mathf.Clamp01(State.ActiveZombies.Count / (waveFactor * maxZombies));
+        var percentSpawned = Mathf.Clamp01(State.Zombies.Count / (waveFactor * maxZombies));
 
         if (Random.value < (1f - percentSpawned))
         {
@@ -175,7 +178,7 @@ public static class Game
         const float vulturesFactor = 1f;
         // https://www.desmos.com/calculator/1o7gniviux
         var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
-        
+
         var desiredSpawnCount = Mathf.FloorToInt(waveFactor * vulturesFactor);
         if (desiredSpawnCount == 0)
         {
@@ -192,121 +195,122 @@ public static class Game
 
     private static void ActivateVulture()
     {
-        var vultureComponent = State.InactiveVultures.Pop();
-        vultureComponent.State.IsDead = false;
-        vultureComponent.State.SpeedFactor = Random.Range(0.8f, 1.5f);
-        vultureComponent.State.Index = State.Vultures.Add(new Vulture
+        var vulture = new Vulture
         {
             Action = VultureAction.FlyingLeft,
             LapsMade = 0,
-            EnemyComponent = vultureComponent
-        });
-        vultureComponent.RigidBody.detectCollisions = true;
-        vultureComponent.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
-        vultureComponent.transform.position = Vector3.Lerp(_references.MinVultureSpawn.position,
+            IsDead = false,
+            SpeedFactor = Random.Range(0.8f, 1.5f),
+            Component = State.AvailableVultureComponents.Pop()
+        };
+        vulture.Component.RigidBody.detectCollisions = true;
+        vulture.Component.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+        vulture.Component.transform.position = Vector3.Lerp(_references.MinVultureSpawn.position,
             _references.MaxVultureSpawn.position, Random.value);
-        vultureComponent.Animator.Play(VultureAnimations.FlyingLeft);
+        vulture.Component.Animator.Play(VultureAnimations.FlyingLeft);
+        vulture.Component.Index = State.Vultures.Add(vulture);
     }
 
     private static void UpdateBullets(FrameTime time)
     {
-        if (State.ActiveBullets.Count == 0)
+        if (State.Bullets.Count == 0)
         {
             return;
         }
 
-        ref var bullet = ref State.ActiveBullets.Tail();
+        ref var bulletNode = ref State.Bullets.Tail();
 
         while (true)
         {
             var shouldDeactivate = false;
-            for (var i = 0; i < bullet.Value.State.CollidedZombies.UsableLength; i++)
+            for (var i = 0; i < bulletNode.Value.Component.CollidedZombies.UsableLength; i++)
             {
-                var enemy = bullet.Value.State.CollidedZombies.Data[i];
-                if (enemy.State.IsDead)
+                var index = bulletNode.Value.Component.CollidedZombies.Data[i].Index;
+                ref var zombieNode = ref State.Zombies.GetAt(index);
+                if (zombieNode.Value.IsDead)
                 {
                     continue;
                 }
 
                 State.EnemiesKilled++;
-                enemy.State.IsDead = true;
-                bullet.Value.State.RemainingHits--;
-                KillZombie(enemy);
+                zombieNode.Value.IsDead = true;
+                bulletNode.Value.RemainingHits--;
+                KillZombie(ref zombieNode);
 
-                if (bullet.Value.State.RemainingHits <= 0)
+                if (bulletNode.Value.RemainingHits <= 0)
                 {
                     shouldDeactivate = true;
                     break;
                 }
             }
 
-            for (var i = 0; i < bullet.Value.State.CollidedVultures.UsableLength; i++)
+            for (var i = 0; i < bulletNode.Value.Component.CollidedVultures.UsableLength; i++)
             {
-                var enemy = bullet.Value.State.CollidedVultures.Data[i];
-                if (enemy.State.IsDead)
+                var index = bulletNode.Value.Component.CollidedVultures.Data[i].Index;
+                ref var vultureNode = ref State.Vultures.GetAt(index);
+                if (vultureNode.Value.IsDead)
                 {
                     continue;
                 }
 
                 State.EnemiesKilled++;
-                enemy.State.IsDead = true;
-                bullet.Value.State.RemainingHits--;
-                ref var vulture = ref State.Vultures.GetAt(enemy.State.Index);
-                KillVulture(ref vulture.Value);
+                vultureNode.Value.IsDead = true;
+                bulletNode.Value.RemainingHits--;
+                KillVulture(ref vultureNode);
 
-                if (bullet.Value.State.RemainingHits <= 0)
+                if (bulletNode.Value.RemainingHits <= 0)
                 {
                     shouldDeactivate = true;
                     break;
                 }
             }
 
-            bullet.Value.State.CollidedZombies.Clear();
-            bullet.Value.State.CollidedVultures.Clear();
+            bulletNode.Value.Component.CollidedZombies.Clear();
+            bulletNode.Value.Component.CollidedVultures.Clear();
 
-            if (!State.VisibilityBounds.Contains(bullet.Value.transform.position))
+            if (!State.VisibilityBounds.Contains(bulletNode.Value.Component.transform.position))
             {
                 shouldDeactivate = true;
             }
 
             if (shouldDeactivate)
             {
-                DeactivateBullet(ref bullet);
+                DeactivateBullet(ref bulletNode);
             }
 
-            if (!bullet.HasNext)
+            if (!bulletNode.HasNext)
             {
                 break;
             }
 
-            bullet = ref State.ActiveBullets.Next(ref bullet);
+            bulletNode = ref State.Bullets.Next(ref bulletNode);
         }
     }
 
     private static void UpdateZombies()
     {
-        if (State.ActiveZombies.Count == 0)
+        if (State.Zombies.Count == 0)
         {
             return;
         }
 
-        ref var zombie = ref State.ActiveZombies.Tail();
+        ref var zombie = ref State.Zombies.Tail();
 
         while (true)
         {
-            if (!State.VisibilityBounds.Contains(zombie.Value.transform.position))
+            if (!State.VisibilityBounds.Contains(zombie.Value.Component.transform.position))
             {
                 DeactivateZombie(ref zombie);
             }
 
-            zombie.Value.RigidBody.velocity = GetZombieVelocity(zombie.Value);
+            zombie.Value.Component.RigidBody.velocity = GetZombieVelocity(ref zombie.Value);
 
             if (!zombie.HasNext)
             {
                 break;
             }
 
-            zombie = ref State.ActiveZombies.Next(ref zombie);
+            zombie = ref State.Zombies.Next(ref zombie);
         }
     }
 
@@ -324,16 +328,16 @@ public static class Game
             switch (vulture.Value.Action)
             {
                 case VultureAction.FlyingLeft:
-                    if (vulture.Value.EnemyComponent.transform.position.x < State.VultureMinHorizontalPosition)
+                    if (vulture.Value.Component.transform.position.x < State.VultureMinHorizontalPosition)
                     {
                         vulture.Value.Action = VultureAction.FlyingRight;
-                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.FlyingRight);
-                        vulture.Value.EnemyComponent.RigidBody.velocity = new Vector2(VultureVelocity, 0f);
+                        vulture.Value.Component.Animator.Play(VultureAnimations.FlyingRight);
+                        vulture.Value.Component.RigidBody.velocity = new Vector2(VultureVelocity, 0f);
                     }
 
                     break;
                 case VultureAction.FlyingRight:
-                    if (vulture.Value.EnemyComponent.transform.position.x > State.VultureMaxHorizontalPosition)
+                    if (vulture.Value.Component.transform.position.x > State.VultureMaxHorizontalPosition)
                     {
                         vulture.Value.LapsMade++;
                         if (vulture.Value.LapsMade < 2)
@@ -345,19 +349,19 @@ public static class Game
                             vulture.Value.Action = VultureAction.PreparingDive;
                         }
 
-                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.FlyingLeft);
-                        vulture.Value.EnemyComponent.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+                        vulture.Value.Component.Animator.Play(VultureAnimations.FlyingLeft);
+                        vulture.Value.Component.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
                     }
 
                     break;
                 case VultureAction.PreparingDive:
-                    if (vulture.Value.EnemyComponent.transform.position.x <= State.VultureDiveHorizontalPosition)
+                    if (vulture.Value.Component.transform.position.x <= State.VultureDiveHorizontalPosition)
                     {
                         vulture.Value.Action = VultureAction.Diving;
-                        vulture.Value.EnemyComponent.Animator.Play(VultureAnimations.Diving);
+                        vulture.Value.Component.Animator.Play(VultureAnimations.Diving);
                         var toPlayer = _references.Player.Center.position -
-                                       vulture.Value.EnemyComponent.transform.position;
-                        vulture.Value.EnemyComponent.RigidBody.velocity = toPlayer.normalized * VultureVelocity;
+                                       vulture.Value.Component.transform.position;
+                        vulture.Value.Component.RigidBody.velocity = toPlayer.normalized * VultureVelocity;
                     }
 
                     break;
@@ -365,7 +369,7 @@ public static class Game
                     break;
 
                 case VultureAction.Dying:
-                    var animatorState = vulture.Value.EnemyComponent.Animator.GetCurrentAnimatorStateInfo(0);
+                    var animatorState = vulture.Value.Component.Animator.GetCurrentAnimatorStateInfo(0);
                     if ((animatorState.IsName(VultureAnimations.DyingLeft) ||
                          animatorState.IsName(VultureAnimations.DyingRight)) && animatorState.normalizedTime >= 1f)
                     {
@@ -429,77 +433,84 @@ public static class Game
     private static void FireBullet(Transform origin, Vector2 direction)
     {
         const float bulletVelocity = 500f;
-        var bullet = State.InactiveBullets.Pop();
-        bullet.State.RemainingHits = 1;
-        bullet.RigidBody.detectCollisions = true;
-        bullet.RigidBody.velocity = direction * bulletVelocity;
-        bullet.transform.position = origin.position;
+        var bullet = new Bullet
+        {
+            RemainingHits = 1,
+            Component = State.AvailableBulletComponents.Pop()
+        };
+        bullet.Component.Index = State.Bullets.Add(bullet);
+        bullet.Component.RigidBody.detectCollisions = true;
+        bullet.Component.RigidBody.velocity = direction * bulletVelocity;
+        bullet.Component.transform.position = origin.position;
         var upwards = Vector3.Cross(Vector3.forward, direction);
-        bullet.transform.localRotation = Quaternion.LookRotation(Vector3.forward, upwards);
-        State.ActiveBullets.Add(bullet);
+        bullet.Component.transform.localRotation = Quaternion.LookRotation(Vector3.forward, upwards);
     }
 
-    private static void DeactivateBullet(ref ArrayListNode<BulletComponent> bullet)
+    private static void DeactivateBullet(ref ArrayListNode<Bullet> bulletNode)
     {
-        State.ActiveBullets.Remove(ref bullet);
-        State.InactiveBullets.Push(bullet.Value);
-        bullet.Value.RigidBody.detectCollisions = false;
-        bullet.Value.transform.position = new Vector3(-1000f, 0f, 0f);
+        State.Bullets.Remove(ref bulletNode);
+        State.AvailableBulletComponents.Push(bulletNode.Value.Component);
+        bulletNode.Value.Component.RigidBody.velocity = Vector3.zero;
+        bulletNode.Value.Component.RigidBody.detectCollisions = false;
+        bulletNode.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
     private static void ActivateZombie()
     {
-        var zombie = State.InactiveZombies.Pop();
-        zombie.State.IsDead = false;
-        zombie.State.SpeedFactor = Random.Range(0.8f, 1.5f);
-        zombie.State.Index = State.ActiveZombies.Add(zombie);
-        zombie.RigidBody.detectCollisions = true;
-        zombie.RigidBody.velocity = GetZombieVelocity(zombie);
-        zombie.transform.position = _references.ZombieSpawn.position;
-        zombie.Animator.SetTrigger(ZombieRunAnimationTrigger);
+        var zombie = new Zombie
+        {
+            IsDead = false,
+            SpeedFactor = Random.Range(0.8f, 1.5f),
+            Component = State.AvailableZombieComponents.Pop()
+        };
+        zombie.Component.Index = State.Zombies.Add(zombie);
+        zombie.Component.RigidBody.detectCollisions = true;
+        zombie.Component.RigidBody.velocity = GetZombieVelocity(ref zombie);
+        zombie.Component.transform.position = _references.ZombieSpawn.position;
+        zombie.Component.Animator.SetTrigger(ZombieRunAnimationTrigger);
     }
 
-    private static Vector2 GetZombieVelocity(EnemyComponent zombie)
+    private static Vector2 GetZombieVelocity(ref Zombie zombie)
     {
-        if (zombie.State.IsDead)
+        if (zombie.IsDead)
         {
             return new Vector2(-State.PlayerVelocity, 0f);
         }
 
-        var velocity = -(ZombieVelocity + State.PlayerVelocity) * zombie.State.SpeedFactor;
+        var velocity = -(ZombieVelocity + State.PlayerVelocity) * zombie.SpeedFactor;
         return new Vector2(velocity, 0f);
     }
 
-    private static void KillZombie(EnemyComponent zombie)
+    private static void KillZombie(ref ArrayListNode<Zombie> zombieNode)
     {
-        zombie.Animator.ResetTrigger(ZombieRunAnimationTrigger);
-        zombie.Animator.SetTrigger(ZombieDieAnimationTrigger);
-        zombie.State.IsDead = true;
-        zombie.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
+        zombieNode.Value.IsDead = true;
+        zombieNode.Value.Component.Animator.ResetTrigger(ZombieRunAnimationTrigger);
+        zombieNode.Value.Component.Animator.SetTrigger(ZombieDieAnimationTrigger);
+        zombieNode.Value.Component.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
     }
 
-    private static void KillVulture(ref Vulture vulture)
+    private static void KillVulture(ref ArrayListNode<Vulture> vultureNode)
     {
-        vulture.EnemyComponent.Animator.Play(VultureAnimations.DyingLeft);
-        vulture.EnemyComponent.State.IsDead = true;
-        vulture.EnemyComponent.RigidBody.velocity = new Vector2(50f, 50f);
-        vulture.Action = VultureAction.Dying;
+        vultureNode.Value.IsDead = true;
+        vultureNode.Value.Component.Animator.Play(VultureAnimations.DyingLeft);
+        vultureNode.Value.Component.RigidBody.velocity = new Vector2(50f, 50f);
+        vultureNode.Value.Action = VultureAction.Dying;
     }
 
-    private static void DeactivateZombie(ref ArrayListNode<EnemyComponent> zombie)
+    private static void DeactivateZombie(ref ArrayListNode<Zombie> zombie)
     {
-        State.ActiveZombies.Remove(ref zombie);
-        State.InactiveZombies.Push(zombie.Value);
-        zombie.Value.RigidBody.detectCollisions = false;
-        zombie.Value.transform.position = new Vector3(-1000f, 0f, 0f);
+        State.Zombies.Remove(ref zombie);
+        State.AvailableZombieComponents.Push(zombie.Value.Component);
+        zombie.Value.Component.RigidBody.detectCollisions = false;
+        zombie.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
     private static void DeactivateVulture(ref ArrayListNode<Vulture> vulture)
     {
         State.Vultures.Remove(ref vulture);
-        State.InactiveVultures.Push(vulture.Value.EnemyComponent);
-        vulture.Value.EnemyComponent.RigidBody.detectCollisions = false;
-        vulture.Value.EnemyComponent.transform.position = new Vector3(-1000f, 0f, 0f);
+        State.AvailableVultureComponents.Push(vulture.Value.Component);
+        vulture.Value.Component.RigidBody.detectCollisions = false;
+        vulture.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
     public struct Report
@@ -517,22 +528,6 @@ public static class Game
     }
 }
 
-public struct Vulture
-{
-    public int LapsMade;
-    public VultureAction Action;
-    public EnemyComponent EnemyComponent;
-}
-
-public enum VultureAction
-{
-    FlyingLeft,
-    FlyingRight,
-    PreparingDive,
-    Diving,
-    Dying
-}
-
 public struct GameState
 {
     public float PlayerVelocity;
@@ -546,9 +541,40 @@ public struct GameState
     public float VultureDiveHorizontalPosition;
     public int AvailableBulletCount;
     public ArrayList<Vulture> Vultures;
-    public ArrayList<BulletComponent> ActiveBullets;
-    public Stack<BulletComponent> InactiveBullets;
-    public ArrayList<EnemyComponent> ActiveZombies;
-    public Stack<EnemyComponent> InactiveZombies;
-    public Stack<EnemyComponent> InactiveVultures;
+    public ArrayList<Bullet> Bullets;
+    public ArrayList<Zombie> Zombies;
+    public Stack<BulletComponent> AvailableBulletComponents;
+    public Stack<EnemyComponent> AvailableZombieComponents;
+    public Stack<EnemyComponent> AvailableVultureComponents;
+}
+
+public struct Bullet
+{
+    public int RemainingHits;
+    public BulletComponent Component;
+}
+
+public struct Zombie
+{
+    public bool IsDead;
+    public float SpeedFactor;
+    public EnemyComponent Component;
+}
+
+public struct Vulture
+{
+    public bool IsDead;
+    public float SpeedFactor;
+    public int LapsMade;
+    public VultureAction Action;
+    public EnemyComponent Component;
+}
+
+public enum VultureAction
+{
+    FlyingLeft,
+    FlyingRight,
+    PreparingDive,
+    Diving,
+    Dying
 }

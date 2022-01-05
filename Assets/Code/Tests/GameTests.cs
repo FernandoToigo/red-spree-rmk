@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
 public class GameTests

@@ -24,10 +24,50 @@ public static class UserInterface
     public static void Update(Game.Report gameReport, FrameTime time)
     {
         TryUpdateBulletCount(gameReport);
-        UpdateCollectedBullets(gameReport, time);
+        StartShowingCollectedBullets(gameReport);
+        UpdateCollectedBullets(time);
     }
 
-    private static void UpdateCollectedBullets(Game.Report gameReport, FrameTime time)
+    private static void UpdateCollectedBullets(FrameTime time)
+    {
+        if (_state.CollectedBullets.Count == 0)
+        {
+            return;
+        }
+
+        ref var collectedBulletNode = ref _state.CollectedBullets.Tail();
+
+        while (true)
+        {
+            collectedBulletNode.Value.AnimationPercent =
+                Mathf.Min(1f, collectedBulletNode.Value.AnimationPercent + time.DeltaSeconds);
+            var y = collectedBulletNode.Value.AnimationPercent * 30f;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                _references.CollectedBulletsParent,
+                _references.Camera.WorldToScreenPoint(collectedBulletNode.Value.Source.position),
+                null,
+                out var sourcePosition);
+
+            collectedBulletNode.Value.Visual.rectTransform.anchoredPosition = sourcePosition + new Vector2(0f, y);
+
+            if (collectedBulletNode.Value.AnimationPercent >= 1f)
+            {
+                collectedBulletNode.Value.Visual.gameObject.SetActive(false);
+                _state.AvailableCollectedBulletVisuals.Push(collectedBulletNode.Value.Visual);
+                _state.CollectedBullets.Remove(ref collectedBulletNode);
+            }
+
+            if (!collectedBulletNode.HasNext)
+            {
+                break;
+            }
+
+            collectedBulletNode = ref _state.CollectedBullets.Next(ref collectedBulletNode);
+        }
+    }
+
+    private static void StartShowingCollectedBullets(Game.Report gameReport)
     {
         if (gameReport.CollectedBullets > 0)
         {
@@ -40,42 +80,6 @@ public static class UserInterface
                 AnimationPercent = 0f,
                 Source = gameReport.CollectedBulletsSource
             });
-        }
-
-        if (_state.CollectedBullets.Count == 0)
-        {
-            return;
-        }
-
-        ref var bullet = ref _state.CollectedBullets.Tail();
-
-        while (true)
-        {
-            bullet.Value.AnimationPercent =
-                Mathf.Min(1f, bullet.Value.AnimationPercent + time.DeltaSeconds);
-            var y = bullet.Value.AnimationPercent * 30f;
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _references.CollectedBulletsParent,
-                _references.Camera.WorldToScreenPoint(bullet.Value.Source.position),
-                null,
-                out var sourcePosition);
-
-            bullet.Value.Visual.rectTransform.anchoredPosition = sourcePosition + new Vector2(0f, y);
-
-            if (bullet.Value.AnimationPercent >= 1f)
-            {
-                bullet.Value.Visual.gameObject.SetActive(false);
-                _state.AvailableCollectedBulletVisuals.Push(bullet.Value.Visual);
-                _state.CollectedBullets.Remove(ref bullet);
-            }
-
-            if (!bullet.HasNext)
-            {
-                break;
-            }
-
-            bullet = ref _state.CollectedBullets.Next(ref bullet);
         }
     }
 
