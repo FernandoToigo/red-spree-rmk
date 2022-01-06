@@ -3,6 +3,8 @@ using UnityEngine;
 
 public static class Game
 {
+    public const string ZombieTag = "Zombie";
+    public const string VultureTag = "Vulture";
     private static readonly int ZombieRunAnimationTrigger = Animator.StringToHash("Run");
     private static readonly int ZombieDieAnimationTrigger = Animator.StringToHash("Die");
     private static readonly int PlayerDieAnimationTrigger = Animator.StringToHash("Died");
@@ -96,7 +98,7 @@ public static class Game
         TryFireStraight(input, ref report);
         TryFireDiagonally(input, ref report);
         TryCollideWithEnemies(ref report);
-        TrySpawnZombies(time, ref report);
+        //TrySpawnZombies(time, ref report);
         TrySpawnVultures(time);
         UpdateBullets(time);
         UpdateZombies();
@@ -115,26 +117,42 @@ public static class Game
     {
         if (!State.IsDead)
         {
-            for (var i = 0; i < _references.Player.CollidedEnemies.UsableLength; i++)
+            for (var i = 0; i < _references.Player.CollidedZombies.UsableLength; i++)
             {
-                ref var enemyNode = ref State.Zombies.GetAt(_references.Player.CollidedEnemies.Data[i].Index);
+                ref var enemyNode = ref State.Zombies.GetAt(_references.Player.CollidedZombies.Data[i].Index);
                 if (enemyNode.Value.IsDead)
                 {
-                    var bullets = Random.value <= 0.5f ? 2 : 1;
-                    report.CollectedBulletsSource = _references.Player.CollidedEnemies.Data[i].transform;
+                    var bullets = Random.value <= 0.4f ? 2 : 1;
+                    report.CollectedBulletsSource = _references.Player.CollidedZombies.Data[i].transform;
                     report.CollectedBullets += bullets;
                     State.AvailableBulletCount += bullets;
                 }
                 else
                 {
-                    State.IsDead = true;
-                    State.PlayerVelocity = 0f;
-                    _references.Player.Animator.SetTrigger(PlayerDieAnimationTrigger);
+                    KillPlayer();
+                    break;
+                }
+            }
+
+            for (var i = 0; i < _references.Player.CollidedVultures.UsableLength; i++)
+            {
+                ref var vultureNode = ref State.Zombies.GetAt(_references.Player.CollidedVultures.Data[i].Index);
+                if (!vultureNode.Value.IsDead)
+                {
+                    KillPlayer();
+                    break;
                 }
             }
         }
 
-        _references.Player.CollidedEnemies.Clear();
+        _references.Player.CollidedZombies.Clear();
+    }
+
+    private static void KillPlayer()
+    {
+        State.IsDead = true;
+        State.PlayerVelocity = 0f;
+        _references.Player.Animator.SetTrigger(PlayerDieAnimationTrigger);
     }
 
     private static void TrySpawnZombies(FrameTime time, ref Report report)
@@ -152,7 +170,7 @@ public static class Game
         const float p = 15f;
         const float maxZombies = 3f;
         // https://www.desmos.com/calculator/1o7gniviux
-        var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
+        var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.6f);
         var percentSpawned = Mathf.Clamp01(State.Zombies.Count / (waveFactor * maxZombies));
 
         if (Random.value < (1f - percentSpawned))
@@ -177,7 +195,7 @@ public static class Game
         const float p = 35f;
         const float vulturesFactor = 1f;
         // https://www.desmos.com/calculator/1o7gniviux
-        var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.5f);
+        var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.7f);
 
         var desiredSpawnCount = Mathf.FloorToInt(waveFactor * vulturesFactor);
         if (desiredSpawnCount == 0)
@@ -204,7 +222,7 @@ public static class Game
             Component = State.AvailableVultureComponents.Pop()
         };
         vulture.Component.RigidBody.detectCollisions = true;
-        vulture.Component.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+        vulture.Component.RigidBody.velocity = new Vector2(-GetVultureSpeed(ref vulture), 0f);
         vulture.Component.transform.position = Vector3.Lerp(_references.MinVultureSpawn.position,
             _references.MaxVultureSpawn.position, Random.value);
         vulture.Component.Animator.Play(VultureAnimations.FlyingLeft);
@@ -321,47 +339,50 @@ public static class Game
             return;
         }
 
-        ref var vulture = ref State.Vultures.Tail();
+        ref var vultureNode = ref State.Vultures.Tail();
 
         while (true)
         {
-            switch (vulture.Value.Action)
+            switch (vultureNode.Value.Action)
             {
                 case VultureAction.FlyingLeft:
-                    if (vulture.Value.Component.transform.position.x < State.VultureMinHorizontalPosition)
+                    if (vultureNode.Value.Component.transform.position.x < State.VultureMinHorizontalPosition)
                     {
-                        vulture.Value.Action = VultureAction.FlyingRight;
-                        vulture.Value.Component.Animator.Play(VultureAnimations.FlyingRight);
-                        vulture.Value.Component.RigidBody.velocity = new Vector2(VultureVelocity, 0f);
+                        vultureNode.Value.Action = VultureAction.FlyingRight;
+                        vultureNode.Value.Component.Animator.Play(VultureAnimations.FlyingRight);
+                        vultureNode.Value.Component.RigidBody.velocity =
+                            new Vector2(GetVultureSpeed(ref vultureNode.Value), 0f);
                     }
 
                     break;
                 case VultureAction.FlyingRight:
-                    if (vulture.Value.Component.transform.position.x > State.VultureMaxHorizontalPosition)
+                    if (vultureNode.Value.Component.transform.position.x > State.VultureMaxHorizontalPosition)
                     {
-                        vulture.Value.LapsMade++;
-                        if (vulture.Value.LapsMade < 2)
+                        vultureNode.Value.LapsMade++;
+                        if (vultureNode.Value.LapsMade < 2)
                         {
-                            vulture.Value.Action = VultureAction.FlyingLeft;
+                            vultureNode.Value.Action = VultureAction.FlyingLeft;
                         }
                         else
                         {
-                            vulture.Value.Action = VultureAction.PreparingDive;
+                            vultureNode.Value.Action = VultureAction.PreparingDive;
                         }
 
-                        vulture.Value.Component.Animator.Play(VultureAnimations.FlyingLeft);
-                        vulture.Value.Component.RigidBody.velocity = new Vector2(-VultureVelocity, 0f);
+                        vultureNode.Value.Component.Animator.Play(VultureAnimations.FlyingLeft);
+                        vultureNode.Value.Component.RigidBody.velocity =
+                            new Vector2(-GetVultureSpeed(ref vultureNode.Value), 0f);
                     }
 
                     break;
                 case VultureAction.PreparingDive:
-                    if (vulture.Value.Component.transform.position.x <= State.VultureDiveHorizontalPosition)
+                    if (vultureNode.Value.Component.transform.position.x <= State.VultureDiveHorizontalPosition)
                     {
-                        vulture.Value.Action = VultureAction.Diving;
-                        vulture.Value.Component.Animator.Play(VultureAnimations.Diving);
+                        vultureNode.Value.Action = VultureAction.Diving;
+                        vultureNode.Value.Component.Animator.Play(VultureAnimations.Diving);
                         var toPlayer = _references.Player.Center.position -
-                                       vulture.Value.Component.transform.position;
-                        vulture.Value.Component.RigidBody.velocity = toPlayer.normalized * VultureVelocity;
+                                       vultureNode.Value.Component.transform.position;
+                        vultureNode.Value.Component.RigidBody.velocity =
+                            toPlayer.normalized * GetVultureSpeed(ref vultureNode.Value);
                     }
 
                     break;
@@ -369,22 +390,22 @@ public static class Game
                     break;
 
                 case VultureAction.Dying:
-                    var animatorState = vulture.Value.Component.Animator.GetCurrentAnimatorStateInfo(0);
+                    var animatorState = vultureNode.Value.Component.Animator.GetCurrentAnimatorStateInfo(0);
                     if ((animatorState.IsName(VultureAnimations.DyingLeft) ||
                          animatorState.IsName(VultureAnimations.DyingRight)) && animatorState.normalizedTime >= 1f)
                     {
-                        DeactivateVulture(ref vulture);
+                        DeactivateVulture(ref vultureNode);
                     }
 
                     break;
             }
 
-            if (!vulture.HasNext)
+            if (!vultureNode.HasNext)
             {
                 break;
             }
 
-            vulture = ref State.Vultures.Next(ref vulture);
+            vultureNode = ref State.Vultures.Next(ref vultureNode);
         }
     }
 
@@ -435,7 +456,7 @@ public static class Game
         const float bulletVelocity = 500f;
         var bullet = new Bullet
         {
-            RemainingHits = 1,
+            RemainingHits = State.EnemiesKilled > 500 ? 2 : 1,
             Component = State.AvailableBulletComponents.Pop()
         };
         bullet.Component.Index = State.Bullets.Add(bullet);
@@ -468,6 +489,11 @@ public static class Game
         zombie.Component.RigidBody.velocity = GetZombieVelocity(ref zombie);
         zombie.Component.transform.position = _references.ZombieSpawn.position;
         zombie.Component.Animator.SetTrigger(ZombieRunAnimationTrigger);
+    }
+
+    private static float GetVultureSpeed(ref Vulture vulture)
+    {
+        return VultureVelocity * vulture.SpeedFactor;
     }
 
     private static Vector2 GetZombieVelocity(ref Zombie zombie)

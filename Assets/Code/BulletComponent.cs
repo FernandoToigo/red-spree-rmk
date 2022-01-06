@@ -4,8 +4,6 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class BulletComponent : MonoBehaviour
 {
-    private const string ZombieTag = "Zombie";
-    private const string VultureTag = "Vulture";
     public Rigidbody RigidBody;
     
     [NonSerialized] public int Index;
@@ -14,11 +12,11 @@ public class BulletComponent : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.gameObject.CompareTag(ZombieTag))
+        if (collider.gameObject.CompareTag(Game.ZombieTag))
         {
             CollidedZombies.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
-        else if (collider.gameObject.CompareTag(VultureTag))
+        else if (collider.gameObject.CompareTag(Game.VultureTag))
         {
             CollidedVultures.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
