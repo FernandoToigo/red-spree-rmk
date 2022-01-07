@@ -5,10 +5,6 @@ public static class Game
 {
     public const string ZombieTag = "Zombie";
     public const string VultureTag = "Vulture";
-    private static readonly int ZombieRunAnimationTrigger = Animator.StringToHash("Run");
-    private static readonly int ZombieDieAnimationTrigger = Animator.StringToHash("Die");
-    private static readonly int PlayerDieAnimationTrigger = Animator.StringToHash("Died");
-    private static readonly int PlayerShotDiagonallyAnimationTrigger = Animator.StringToHash("ShotDiagonally");
     private const float ZombieVelocity = 50f;
     private const float VultureVelocity = 100f;
     private const float PlayerVelocity = 50f;
@@ -98,7 +94,7 @@ public static class Game
         TryFireStraight(input, ref report);
         TryFireDiagonally(input, ref report);
         TryCollideWithEnemies(ref report);
-        //TrySpawnZombies(time, ref report);
+        TrySpawnZombies(time, ref report);
         TrySpawnVultures(time);
         UpdateBullets(time);
         UpdateZombies();
@@ -152,7 +148,7 @@ public static class Game
     {
         State.IsDead = true;
         State.PlayerVelocity = 0f;
-        _references.Player.Animator.SetTrigger(PlayerDieAnimationTrigger);
+        _references.Player.Animator.Play(PlayerAnimations.Dying);
     }
 
     private static void TrySpawnZombies(FrameTime time, ref Report report)
@@ -428,8 +424,7 @@ public static class Game
 
         if (TryFire(input, ref report, _references.DiagonalGunNozzle, (Vector2.right + Vector2.up).normalized))
         {
-            _references.Player.Animator.ResetTrigger(PlayerShotDiagonallyAnimationTrigger);
-            _references.Player.Animator.SetTrigger(PlayerShotDiagonallyAnimationTrigger);
+            _references.Player.Animator.Play(PlayerAnimations.ShootingUp);
         }
     }
 
@@ -488,7 +483,7 @@ public static class Game
         zombie.Component.RigidBody.detectCollisions = true;
         zombie.Component.RigidBody.velocity = GetZombieVelocity(ref zombie);
         zombie.Component.transform.position = _references.ZombieSpawn.position;
-        zombie.Component.Animator.SetTrigger(ZombieRunAnimationTrigger);
+        zombie.Component.Animator.Play(ZombieAnimations.Running);
     }
 
     private static float GetVultureSpeed(ref Vulture vulture)
@@ -510,8 +505,7 @@ public static class Game
     private static void KillZombie(ref ArrayListNode<Zombie> zombieNode)
     {
         zombieNode.Value.IsDead = true;
-        zombieNode.Value.Component.Animator.ResetTrigger(ZombieRunAnimationTrigger);
-        zombieNode.Value.Component.Animator.SetTrigger(ZombieDieAnimationTrigger);
+        zombieNode.Value.Component.Animator.Play(ZombieAnimations.Dying);
         zombieNode.Value.Component.RigidBody.velocity = new Vector2(-State.PlayerVelocity, 0f);
     }
 

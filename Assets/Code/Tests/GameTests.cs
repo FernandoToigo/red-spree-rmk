@@ -48,18 +48,32 @@ public class GameTests
         }
     }
 
+    private static void AssertPlayerIsAlive()
+    {
+        Assert.IsTrue(!Game.State.IsDead, "Player has died.");
+    }
+
     [Test]
     public void ShootAtZombie_ZombiesGetKilled()
     {
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 5; i++)
         {
-            RunFramesUntil(new Game.Input(), report => report.SpawnedZombies > 0);
+            RunFramesUntil(new Game.Input(), report =>
+            {
+                AssertPlayerIsAlive();
+                return report.SpawnedZombies > 0;
+            });
             RunFrame(new Game.Input
             {
                 FireStraight = true
             });
+            AssertPlayerIsAlive();
         }
         
-        RunFramesUntil(new Game.Input(), _ => Game.State.EnemiesKilled >= 10);
+        RunFramesUntil(new Game.Input(), _ =>
+        {
+            AssertPlayerIsAlive();
+            return Game.State.EnemiesKilled >= 5;
+        });
     }
 }
