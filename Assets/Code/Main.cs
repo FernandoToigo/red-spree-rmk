@@ -14,15 +14,20 @@ public class Main : MonoBehaviour
     {
         var hardInput = GetHardInput();
         var gameInput = new Game.Input();
-        var time = new FrameTime
-        {
-            DeltaSeconds = Time.deltaTime,
-            TotalSeconds = Time.timeSinceLevelLoad
-        };
+        var time = GetFrameTime();
         
         GameInput.Update(ref gameInput, hardInput);
         var gameReport = Game.Update(gameInput, time);
         UserInterface.Update(gameReport, time);
+    }
+
+    private static FrameTime GetFrameTime()
+    {
+        return new FrameTime
+        {
+            DeltaSeconds = Time.deltaTime,
+            TotalSeconds = Time.timeSinceLevelLoad
+        };
     }
 
     private static HardInput GetHardInput()

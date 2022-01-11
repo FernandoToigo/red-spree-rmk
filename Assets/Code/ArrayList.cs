@@ -1,4 +1,4 @@
-﻿public struct ArrayList<T>
+﻿public class ArrayList<T>
 {
     public ArrayList(int capacity)
     {
@@ -80,5 +80,48 @@
         }
                 
         Count--;
+    }
+
+    public Iterator Iterate()
+    {
+        return new Iterator
+        {
+            List = this,
+            CurrentIndex = -1
+        };
+    }
+
+    public struct Iterator
+    {
+        public ArrayList<T> List;
+        public int CurrentIndex;
+
+        public ref ArrayListNode<T> Current()
+        {
+            return ref List.GetAt(CurrentIndex);
+        }
+
+        public bool Next()
+        {
+            if (CurrentIndex == -1)
+            {
+                if (List.Count > 0)
+                {
+                    CurrentIndex = List._tailIndex;
+                    return true;
+                }
+                
+                return false;
+            }
+            
+            ref var node = ref Current();
+            if (node.HasNext)
+            {
+                CurrentIndex = node.NextIndex;
+                return true;
+            }
+
+            return false;
+        }
     }
 }

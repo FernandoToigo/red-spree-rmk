@@ -94,7 +94,7 @@ public static class Game
         TryCollideWithEnemies(ref report);
         TrySpawnZombies(time, ref report);
         TrySpawnVultures(time);
-        UpdateBullets(time);
+        UpdateBullets();
         UpdateZombies();
         UpdateVultures();
         UpdatePhysics(time);
@@ -223,17 +223,13 @@ public static class Game
         vulture.Component.Index = State.Vultures.Add(vulture);
     }
 
-    private static void UpdateBullets(FrameTime time)
+    private static void UpdateBullets()
     {
-        if (State.Bullets.Count == 0)
-        {
-            return;
-        }
+        var bulletIterator = State.Bullets.Iterate();
 
-        ref var bulletNode = ref State.Bullets.Tail();
-
-        while (true)
+        while (bulletIterator.Next())
         {
+            ref var bulletNode = ref bulletIterator.Current();
             var shouldDeactivate = false;
             for (var i = 0; i < bulletNode.Value.Component.CollidedZombies.UsableLength; i++)
             {
@@ -289,54 +285,34 @@ public static class Game
             {
                 DeactivateBullet(ref bulletNode);
             }
-
-            if (!bulletNode.HasNext)
-            {
-                break;
-            }
-
-            bulletNode = ref State.Bullets.Next(ref bulletNode);
         }
     }
 
     private static void UpdateZombies()
     {
-        if (State.Zombies.Count == 0)
-        {
-            return;
-        }
+        var zombieIterator = State.Zombies.Iterate();
 
-        ref var zombie = ref State.Zombies.Tail();
-
-        while (true)
+        while (zombieIterator.Next())
         {
+            ref var zombie = ref zombieIterator.Current();
+            
             if (!State.VisibilityBounds.Contains(zombie.Value.Component.transform.position))
             {
                 DeactivateZombie(ref zombie);
             }
 
             zombie.Value.Component.RigidBody.velocity = GetZombieVelocity(ref zombie.Value);
-
-            if (!zombie.HasNext)
-            {
-                break;
-            }
-
-            zombie = ref State.Zombies.Next(ref zombie);
         }
     }
 
     private static void UpdateVultures()
     {
-        if (State.Vultures.Count == 0)
-        {
-            return;
-        }
+        var vultureIterator = State.Vultures.Iterate();
 
-        ref var vultureNode = ref State.Vultures.Tail();
-
-        while (true)
+        while (vultureIterator.Next())
         {
+            ref var vultureNode = ref vultureIterator.Current();
+            
             switch (vultureNode.Value.Action)
             {
                 case VultureAction.FlyingLeft:
@@ -393,13 +369,6 @@ public static class Game
 
                     break;
             }
-
-            if (!vultureNode.HasNext)
-            {
-                break;
-            }
-
-            vultureNode = ref State.Vultures.Next(ref vultureNode);
         }
     }
 
