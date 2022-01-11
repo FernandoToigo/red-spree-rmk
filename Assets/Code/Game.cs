@@ -3,8 +3,6 @@ using UnityEngine;
 
 public static class Game
 {
-    public const string ZombieTag = "Zombie";
-    public const string VultureTag = "Vulture";
     private const float ZombieVelocity = 50f;
     private const float VultureVelocity = 100f;
     private const float PlayerVelocity = 50f;

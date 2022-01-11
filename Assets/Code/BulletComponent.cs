@@ -12,11 +12,11 @@ public class BulletComponent : MonoBehaviour
 
     private void OnTriggerEnter(Collider collider)
     {
-        if (collider.gameObject.CompareTag(Game.ZombieTag))
+        if (collider.gameObject.CompareTag(EnemyComponent.ZombieTag))
         {
             CollidedZombies.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
-        else if (collider.gameObject.CompareTag(Game.VultureTag))
+        else if (collider.gameObject.CompareTag(EnemyComponent.VultureTag))
         {
             CollidedVultures.Add(collider.gameObject.GetComponent<EnemyComponent>());
         }
