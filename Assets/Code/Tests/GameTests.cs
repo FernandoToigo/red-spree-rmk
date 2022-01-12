@@ -1,5 +1,6 @@
 using System;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -10,10 +11,12 @@ public class GameTests
     public void Initialize()
     {
         const string gameScenePath = "Assets\\Scenes\\Gameplay.unity";
+        const string definitionsPath = "Assets\\Definitions\\Definitions.asset";
         EditorSceneManager.OpenScene(gameScenePath);
         var references = Object.FindObjectOfType<References>();
+        var definitions = AssetDatabase.LoadAssetAtPath<Definitions>(definitionsPath);
         UnityEngine.Random.InitState(123);
-        Game.Initialize(references);
+        Game.Initialize(references, definitions);
         _totalSeconds = 0f;
     }
 

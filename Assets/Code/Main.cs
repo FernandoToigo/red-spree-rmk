@@ -3,10 +3,12 @@ using UnityEngine.InputSystem;
 
 public class Main : MonoBehaviour
 {
+    public Definitions _definitions;
+    
     private void Awake()
     {
         var references = FindObjectOfType<References>();
-        Game.Initialize(references);
+        Game.Initialize(references, _definitions);
         UserInterface.Initialize(references);
     }
 
