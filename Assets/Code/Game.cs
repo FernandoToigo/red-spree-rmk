@@ -14,8 +14,10 @@ public static class Game
 
         State = new GameState
         {
+            TimeFactor = 1f,
             PlayerVelocity = _definitions.PlayerSpeed,
-            DiagonalShootDirection = (Vector2.right + Vector2.up).normalized
+            DiagonalShootDirection = (Vector2.right + Vector2.up).normalized,
+            BulletPenetration = 0
         };
 
         InitializeBounds();
@@ -89,7 +91,10 @@ public static class Game
     public static Report Update(Input input, FrameTime time)
     {
         var report = new Report();
-
+        
+        TryChangeTimeFactor(input);
+        PassTime(ref time);
+        TryUpgradeBulletPenetration(ref report);
         TryFireStraight(input, ref report);
         TryFireDiagonally(input, ref report);
         CheckEnemyCollisions(ref report);
@@ -103,6 +108,45 @@ public static class Game
         return report;
     }
 
+    private static void TryUpgradeBulletPenetration(ref Report report)
+    {
+        var bulletPenetration = State.EnemiesKilled / 500;
+        if (bulletPenetration <= State.BulletPenetration)
+        {
+            return;
+        }
+        
+        State.BulletPenetration = bulletPenetration;
+        report.BulletPenetrationUpgraded = true;
+    }
+
+    private static void PassTime(ref FrameTime time)
+    {
+        time.DeltaSeconds *= State.TimeFactor;
+        State.SecondsPassed += time.DeltaSeconds;
+    }
+
+    private static void TryChangeTimeFactor(Input input)
+    {
+        if (!input.ChangedTimeFactor.HasValue)
+        {
+            return;
+        }
+
+        State.TimeFactor = input.ChangedTimeFactor.Value;
+        
+        _references.Player.Animator.speed = State.TimeFactor;
+        for (var i = 0; i < _references.Zombies.Length; i++)
+        {
+            _references.Zombies[i].Animator.speed = State.TimeFactor;
+        }
+            
+        for (var i = 0; i < _references.Vultures.Length; i++)
+        {
+            _references.Vultures[i].Animator.speed = State.TimeFactor;
+        }
+    }
+    
     private static void UpdatePhysics(FrameTime time)
     {
         Physics.Simulate(time.DeltaSeconds);
@@ -172,7 +216,7 @@ public static class Game
         }
 
         State.ZombieTickCooldown -= _definitions.ZombieSpawnTickSeconds;
-        var x = time.TotalSeconds;
+        var x = State.SecondsPassed;
         const float p = 15f;
         const float maxZombies = 3f;
         // https://www.desmos.com/calculator/1o7gniviux
@@ -196,7 +240,7 @@ public static class Game
         }
 
         State.VultureTickCooldown -= _definitions.VultureSpawnTickSeconds;
-        var x = time.TotalSeconds;
+        var x = State.SecondsPassed;
         const float p = 35f;
         const float vulturesFactor = 1f;
         // https://www.desmos.com/calculator/1o7gniviux
@@ -447,7 +491,7 @@ public static class Game
     {
         var bullet = new Bullet
         {
-            RemainingHits = State.EnemiesKilled > 500 ? 2 : 1,
+            RemainingHits = 1 + State.BulletPenetration,
             Component = State.BulletComponentsPool.Pop()
         };
         bullet.Component.Index = State.Bullets.Add(bullet);
@@ -542,19 +586,24 @@ public static class Game
         public int CollectedBullets;
         public Transform CollectedBulletsSource;
         public int SpawnedZombies;
+        public bool BulletPenetrationUpgraded;
     }
 
     public struct Input
     {
         public bool FireStraight;
         public bool FireDiagonally;
+        public float? ChangedTimeFactor;
     }
 }
 
 public struct GameState
 {
+    public float TimeFactor;
+    public float SecondsPassed;
     public float PlayerVelocity;
     public int AvailableBulletCount;
+    public int BulletPenetration;
     public Vector3 DiagonalShootDirection;
     public bool IsDead;
     public int EnemiesKilled;

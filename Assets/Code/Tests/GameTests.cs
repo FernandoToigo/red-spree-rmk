@@ -17,19 +17,14 @@ public class GameTests
         var definitions = AssetDatabase.LoadAssetAtPath<Definitions>(definitionsPath);
         UnityEngine.Random.InitState(123);
         Game.Initialize(references, definitions);
-        _totalSeconds = 0f;
     }
-
-    private float _totalSeconds;
 
     private Game.Report RunFrame(Game.Input input)
     {
         var deltaSeconds = Time.fixedDeltaTime;
-        _totalSeconds += deltaSeconds;
         return Game.Update(input, new FrameTime
         {
             DeltaSeconds = deltaSeconds,
-            TotalSeconds = _totalSeconds
         });
     }
 
@@ -44,7 +39,7 @@ public class GameTests
                 return;
             }
 
-            if (_totalSeconds > 100f)
+            if (Game.State.SecondsPassed > 100f)
             {
                 Assert.Fail("Test took too long to complete.");
             }

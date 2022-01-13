@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public static class UserInterface
 {
@@ -21,11 +20,53 @@ public static class UserInterface
         _state.AvailableCollectedBulletVisuals = new Stack<TMP_Text>(_references.CollectedBulletVisuals);
     }
 
-    public static void Update(Game.Report gameReport, FrameTime time)
+    public static void Update(ref Game.Input gameInput)
+    {
+        if (_state.UpgradeAnimationPercent >= 0.7f)
+        {
+            gameInput.ChangedTimeFactor = Mathf.Lerp(1f, 0.2f, (1f - _state.UpgradeAnimationPercent) / 0.3f);
+        }
+        else if (_state.UpgradeAnimationPercent < 0.3f)
+        {
+            gameInput.ChangedTimeFactor = Mathf.Lerp(0.2f, 1f, (0.3f - _state.UpgradeAnimationPercent) / 0.3f);
+        }
+    }
+    
+    public static void Render(Game.Report gameReport, FrameTime time)
     {
         TryUpdateBulletCount(gameReport);
         StartShowingCollectedBullets(gameReport);
         UpdateCollectedBullets(time);
+        TryUpdateUpgradeAnimation(gameReport, time);
+    }
+
+    private static void TryUpdateUpgradeAnimation(Game.Report gameReport, FrameTime time)
+    {
+        if (gameReport.BulletPenetrationUpgraded)
+        {
+            _state.UpgradeAnimationPercent = 1f;
+        }
+        else
+        {
+            const float percentAnimationPerSecond = 1f / 5f;
+            _state.UpgradeAnimationPercent =
+                Mathf.Max(0, _state.UpgradeAnimationPercent - time.DeltaSeconds * percentAnimationPerSecond);
+        }
+
+        if (_state.UpgradeAnimationPercent >= 0.7f)
+        {
+            var stagePercent = (1f - _state.UpgradeAnimationPercent) / 0.3f;
+            var y = Mathf.Lerp(-5f, 0f, stagePercent);
+            _references.UpgradeText.rectTransform.anchoredPosition = new Vector2(0f, y);
+            _references.UpgradeText.alpha = Mathf.Lerp(0f, 1f, stagePercent);
+        }
+        else if (_state.UpgradeAnimationPercent < 0.3f)
+        {
+            var stagePercent = (0.3f - _state.UpgradeAnimationPercent) / 0.3f;
+            var y = Mathf.Lerp(0f, 5f, stagePercent);
+            _references.UpgradeText.rectTransform.anchoredPosition = new Vector2(0f, y);
+            _references.UpgradeText.alpha = Mathf.Lerp(1f, 0f, stagePercent);
+        }
     }
 
     private static void UpdateCollectedBullets(FrameTime time)
@@ -100,6 +141,7 @@ public static class UserInterface
     {
         public Stack<TMP_Text> AvailableCollectedBulletVisuals;
         public ArrayList<CollectedBulletState> CollectedBullets;
+        public float UpgradeAnimationPercent;
     }
 
     private struct CollectedBulletState
@@ -107,16 +149,5 @@ public static class UserInterface
         public float AnimationPercent;
         public TMP_Text Visual;
         public Transform Source;
-    }
-
-    private struct BulletState
-    {
-        public bool IsBeingFired;
-        public bool IsVisible;
-        public bool IsBeingCollected;
-        public float CollectingAnimationPercent;
-        public Vector2 FiredStartPosition;
-        public float FiredAnimationPercent;
-        public Image Visual;
     }
 }

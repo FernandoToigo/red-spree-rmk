@@ -18,4 +18,5 @@ public class References : MonoBehaviour
     public TMP_Text BulletsText;
     public RectTransform CollectedBulletsParent;
     public TMP_Text[] CollectedBulletVisuals;
+    public TMP_Text UpgradeText;
 }

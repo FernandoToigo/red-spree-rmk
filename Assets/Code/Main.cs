@@ -17,10 +17,11 @@ public class Main : MonoBehaviour
         var hardInput = GetHardInput();
         var gameInput = new Game.Input();
         var time = GetFrameTime();
-        
+
+        UserInterface.Update(ref gameInput);
         GameInput.Update(ref gameInput, hardInput);
         var gameReport = Game.Update(gameInput, time);
-        UserInterface.Update(gameReport, time);
+        UserInterface.Render(gameReport, time);
     }
 
     private static FrameTime GetFrameTime()
@@ -28,7 +29,6 @@ public class Main : MonoBehaviour
         return new FrameTime
         {
             DeltaSeconds = Time.deltaTime,
-            TotalSeconds = Time.timeSinceLevelLoad
         };
     }
 
