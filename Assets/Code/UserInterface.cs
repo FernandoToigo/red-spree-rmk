@@ -35,6 +35,7 @@ public static class UserInterface
     public static void Render(Game.Report gameReport, FrameTime time)
     {
         TryUpdateBulletCount(gameReport);
+        UpdateKillCount();
         StartShowingCollectedBullets(gameReport);
         UpdateCollectedBullets(time);
         TryUpdateUpgradeAnimation(gameReport, time);
@@ -130,6 +131,11 @@ public static class UserInterface
         {
             UpdateBulletCount();
         }
+    }
+
+    private static void UpdateKillCount()
+    {
+        _references.KillCountText.text = Game.State.EnemiesKilled.ToString();
     }
 
     private static void UpdateBulletCount()

@@ -16,6 +16,7 @@ public class References : MonoBehaviour
     public EnemyComponent[] Vultures;
     public BulletComponent[] Bullets;
     public TMP_Text BulletsText;
+    public TMP_Text KillCountText;
     public RectTransform CollectedBulletsParent;
     public TMP_Text[] CollectedBulletVisuals;
     public TMP_Text UpgradeText;
