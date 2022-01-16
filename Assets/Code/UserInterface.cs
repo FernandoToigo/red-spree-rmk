@@ -54,22 +54,25 @@ public static class UserInterface
         }
         else
         {
-            const float percentAnimationPerSecond = 1f / 5f;
+            const float animationPercentPerSecond = 1f / 5f;
             _state.UpgradeAnimationPercent =
-                Mathf.Max(0, _state.UpgradeAnimationPercent - time.DeltaSeconds * percentAnimationPerSecond);
+                Mathf.Max(0, _state.UpgradeAnimationPercent - time.DeltaSeconds * animationPercentPerSecond);
         }
 
-        if (_state.UpgradeAnimationPercent >= 0.7f)
+        const float textAnimationDeltaY = 30f;
+        const float textAnimationPercentCut = 0.15f;
+
+        if (_state.UpgradeAnimationPercent >= 1f - textAnimationPercentCut)
         {
-            var stagePercent = (1f - _state.UpgradeAnimationPercent) / 0.3f;
-            var y = Mathf.Lerp(-5f, 0f, stagePercent);
+            var stagePercent = (1f - _state.UpgradeAnimationPercent) / textAnimationPercentCut;
+            var y = Mathf.Lerp(-textAnimationDeltaY, 0f, stagePercent);
             _references.UpgradeText.rectTransform.anchoredPosition = new Vector2(0f, y);
             _references.UpgradeText.alpha = Mathf.Lerp(0f, 1f, stagePercent);
         }
-        else if (_state.UpgradeAnimationPercent < 0.3f)
+        else if (_state.UpgradeAnimationPercent < textAnimationPercentCut)
         {
-            var stagePercent = (0.3f - _state.UpgradeAnimationPercent) / 0.3f;
-            var y = Mathf.Lerp(0f, 5f, stagePercent);
+            var stagePercent = (0.15f - _state.UpgradeAnimationPercent) / textAnimationPercentCut;
+            var y = Mathf.Lerp(0f, textAnimationDeltaY, stagePercent);
             _references.UpgradeText.rectTransform.anchoredPosition = new Vector2(0f, y);
             _references.UpgradeText.alpha = Mathf.Lerp(1f, 0f, stagePercent);
         }
