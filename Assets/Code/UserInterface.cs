@@ -31,7 +31,7 @@ public static class UserInterface
             gameInput.ChangedTimeFactor = Mathf.Lerp(0.2f, 1f, (0.3f - _state.UpgradeAnimationPercent) / 0.3f);
         }
     }
-    
+
     public static void Render(Game.Report gameReport, FrameTime time)
     {
         TryUpdateBulletCount(gameReport);
@@ -83,12 +83,14 @@ public static class UserInterface
         {
             collectedBulletNode.Value.AnimationPercent =
                 Mathf.Min(1f, collectedBulletNode.Value.AnimationPercent + time.DeltaSeconds);
-            var y = collectedBulletNode.Value.AnimationPercent * 30f;
+            var y = collectedBulletNode.Value.AnimationPercent * 120f;
 
+            var sourcePositionOnScreen =
+                _references.Camera.WorldToScreenPoint(collectedBulletNode.Value.Source.position);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _references.CollectedBulletsParent,
-                _references.Camera.WorldToScreenPoint(collectedBulletNode.Value.Source.position),
-                null,
+                sourcePositionOnScreen,
+                _references.Camera,
                 out var sourcePosition);
 
             collectedBulletNode.Value.Visual.rectTransform.anchoredPosition = sourcePosition + new Vector2(0f, y);
