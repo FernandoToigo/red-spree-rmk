@@ -22,6 +22,11 @@ public static class UserInterface
 
     public static void Update(ref Game.Input gameInput)
     {
+        UpdateTimeFactor(ref gameInput);
+    }
+
+    private static void UpdateTimeFactor(ref Game.Input gameInput)
+    {
         if (_state.UpgradeAnimationPercent >= 0.7f)
         {
             gameInput.ChangedTimeFactor = Mathf.Lerp(1f, 0.2f, (1f - _state.UpgradeAnimationPercent) / 0.3f);
@@ -36,7 +41,7 @@ public static class UserInterface
     {
         TryUpdateBulletCount(gameReport);
         UpdateKillCount();
-        StartShowingCollectedBullets(gameReport);
+        ShowCollectedBullets(gameReport);
         UpdateCollectedBullets(time);
         TryUpdateUpgradeAnimation(gameReport, time);
     }
@@ -72,28 +77,19 @@ public static class UserInterface
 
     private static void UpdateCollectedBullets(FrameTime time)
     {
-        if (_state.CollectedBullets.Count == 0)
+        var collectedBulletIterator = _state.CollectedBullets.Iterate();
+        while (collectedBulletIterator.Next())
         {
-            return;
-        }
+            ref var collectedBulletNode = ref collectedBulletIterator.Current();
 
-        ref var collectedBulletNode = ref _state.CollectedBullets.Tail();
-
-        while (true)
-        {
             collectedBulletNode.Value.AnimationPercent =
                 Mathf.Min(1f, collectedBulletNode.Value.AnimationPercent + time.DeltaSeconds);
-            var y = collectedBulletNode.Value.AnimationPercent * 120f;
 
-            var sourcePositionOnScreen =
-                _references.Camera.WorldToScreenPoint(collectedBulletNode.Value.Source.position);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _references.CollectedBulletsParent,
-                sourcePositionOnScreen,
-                _references.Camera,
-                out var sourcePosition);
+            var position = GetCollectedBulletPosition(collectedBulletNode.Value.Source);
 
-            collectedBulletNode.Value.Visual.rectTransform.anchoredPosition = sourcePosition + new Vector2(0f, y);
+            const float collectedAnimationDeltaY = 120f;
+            var y = collectedBulletNode.Value.AnimationPercent * collectedAnimationDeltaY;
+            collectedBulletNode.Value.Visual.rectTransform.anchoredPosition = position + new Vector2(0f, y);
 
             if (collectedBulletNode.Value.AnimationPercent >= 1f)
             {
@@ -101,30 +97,38 @@ public static class UserInterface
                 _state.AvailableCollectedBulletVisuals.Push(collectedBulletNode.Value.Visual);
                 _state.CollectedBullets.Remove(ref collectedBulletNode);
             }
-
-            if (!collectedBulletNode.HasNext)
-            {
-                break;
-            }
-
-            collectedBulletNode = ref _state.CollectedBullets.Next(ref collectedBulletNode);
         }
     }
 
-    private static void StartShowingCollectedBullets(Game.Report gameReport)
+    private static Vector2 GetCollectedBulletPosition(Transform source)
     {
-        if (gameReport.CollectedBullets > 0)
+        var positionOnScreen = _references.Camera.WorldToScreenPoint(source.position);
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            _references.CollectedBulletsParent,
+            positionOnScreen,
+            _references.Camera,
+            out var position);
+
+        return position;
+    }
+
+    private static void ShowCollectedBullets(Game.Report gameReport)
+    {
+        if (gameReport.CollectedBullets <= 0)
         {
-            var visual = _state.AvailableCollectedBulletVisuals.Pop();
-            visual.text = $"+{gameReport.CollectedBullets}";
-            visual.gameObject.SetActive(true);
-            _state.CollectedBullets.Add(new CollectedBulletState
-            {
-                Visual = visual,
-                AnimationPercent = 0f,
-                Source = gameReport.CollectedBulletsSource
-            });
+            return;
         }
+        
+        var visual = _state.AvailableCollectedBulletVisuals.Pop();
+        visual.text = $"+{gameReport.CollectedBullets}";
+        visual.gameObject.SetActive(true);
+        _state.CollectedBullets.Add(new CollectedBulletState
+        {
+            Visual = visual,
+            AnimationPercent = 0f,
+            Source = gameReport.CollectedBulletsSource
+        });
     }
 
     private static void TryUpdateBulletCount(Game.Report gameReport)
