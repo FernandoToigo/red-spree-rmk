@@ -1563,9 +1563,9 @@ RectTransform:
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 135, y: 0}
-  m_SizeDelta: {x: 115.9, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 127, y: 25}
+  m_SizeDelta: {x: 123.9, y: 50}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &348890560
 MonoBehaviour:
@@ -3818,7 +3818,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 735527940}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: StraightGunNozzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4912,7 +4912,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 937038803}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7277,7 +7277,7 @@ GameObject:
   - component: {fileID: 1490231063}
   - component: {fileID: 1490231066}
   - component: {fileID: 1490231067}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9027,7 +9027,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1778141344}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: DiagonalGunNozzle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

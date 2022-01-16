@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public static class Game
 {
@@ -46,7 +48,7 @@ public static class Game
             cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * -0.5f + 5;
         State.VultureMaxHorizontalPosition =
             cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.5f - 5;
-        State.VultureDiveHorizontalPosition = cameraPosition.x + _references.PixelPerfectCamera.refResolutionX * 0.15f;
+        State.VultureDiveHorizontalPosition = cameraPosition.x;
     }
 
     private static void InitializeBullets()
@@ -91,21 +93,105 @@ public static class Game
     public static Report Update(Input input, FrameTime time)
     {
         var report = new Report();
-        
+
+        TryToggleAutoFire(input);
+        TryAutoFire(ref input);
         TryChangeTimeFactor(input);
         PassTime(ref time);
         TryUpgradeBulletPenetration(ref report);
         TryFireStraight(input, ref report);
         TryFireDiagonally(input, ref report);
-        CheckEnemyCollisions(ref report);
+        CheckPlayerEnemyCollisions(ref report);
         TrySpawnZombies(time, ref report);
         TrySpawnVultures(time);
-        UpdateBullets();
+        UpdateBullets(ref report);
         UpdateZombies();
         UpdateVultures();
         UpdatePhysics(time);
+        CheckAutoFirePendingKills(report);
 
         return report;
+    }
+
+    private static void TryToggleAutoFire(Input input)
+    {
+        if (!input.ToggleAutoFire)
+        {
+            return;
+        }
+
+        State.AutoFire.IsActive = !State.AutoFire.IsActive;
+    }
+
+    private static void TryAutoFire(ref Input input)
+    {
+        if (!State.AutoFire.IsActive)
+        {
+            return;
+        }
+
+        TryAutoFireToZombies(ref input);
+        TryAutoFireToVultures(ref input);
+    }
+
+    private static void TryAutoFireToZombies(ref Input input)
+    {
+        var zombieIterator = State.Zombies.Iterate();
+
+        var nearZombies = 0;
+        while (zombieIterator.Next())
+        {
+            ref var zombieNode = ref zombieIterator.Current();
+            if (zombieNode.Value.IsDead)
+            {
+                continue;
+            }
+
+            var difference = zombieNode.Value.Component.transform.position.x - _references.Player.transform.position.x;
+            if (difference < 40f)
+            {
+                nearZombies++;
+            }
+        }
+
+        if (nearZombies - State.AutoFire.PendingZombieKills > 0)
+        {
+            input.FireStraight = true;
+            State.AutoFire.PendingZombieKills++;
+        }
+    }
+
+    private static void TryAutoFireToVultures(ref Input input)
+    {
+        var vulturesIterator = State.Vultures.Iterate();
+
+        var nearVultures = 0;
+        while (vulturesIterator.Next())
+        {
+            ref var vultureNode = ref vulturesIterator.Current();
+            if (vultureNode.Value.IsDead)
+            {
+                continue;
+            }
+
+            var difference = vultureNode.Value.Component.transform.position - _references.Player.transform.position;
+            if (difference.x < 40f && difference.y < 40f)
+            {
+                nearVultures++;
+            }
+        }
+
+        if (nearVultures - State.AutoFire.PendingVultureKills > 0)
+        {
+            input.FireDiagonally = true;
+            State.AutoFire.PendingVultureKills++;
+        }
+    }
+
+    private static void CheckAutoFirePendingKills(Report report)
+    {
+        State.AutoFire.PendingZombieKills = Math.Max(0, State.AutoFire.PendingZombieKills - report.KilledZombies);
+        State.AutoFire.PendingVultureKills = Math.Max(0, State.AutoFire.PendingVultureKills - report.KilledVultures);
     }
 
     private static void TryUpgradeBulletPenetration(ref Report report)
@@ -115,7 +201,7 @@ public static class Game
         {
             return;
         }
-        
+
         State.BulletPenetration = bulletPenetration;
         report.BulletPenetrationUpgraded = true;
     }
@@ -134,25 +220,25 @@ public static class Game
         }
 
         State.TimeFactor = input.ChangedTimeFactor.Value;
-        
+
         _references.Player.Animator.speed = State.TimeFactor;
         for (var i = 0; i < _references.Zombies.Length; i++)
         {
             _references.Zombies[i].Animator.speed = State.TimeFactor;
         }
-            
+
         for (var i = 0; i < _references.Vultures.Length; i++)
         {
             _references.Vultures[i].Animator.speed = State.TimeFactor;
         }
     }
-    
+
     private static void UpdatePhysics(FrameTime time)
     {
         Physics.Simulate(time.DeltaSeconds);
     }
 
-    private static void CheckEnemyCollisions(ref Report report)
+    private static void CheckPlayerEnemyCollisions(ref Report report)
     {
         if (!State.IsDead)
         {
@@ -188,7 +274,7 @@ public static class Game
     {
         for (var i = 0; i < _references.Player.CollidedVultures.UsableLength; i++)
         {
-            ref var vultureNode = ref State.Zombies.GetAt(_references.Player.CollidedVultures.Data[i].Index);
+            ref var vultureNode = ref State.Vultures.GetAt(_references.Player.CollidedVultures.Data[i].Index);
             if (vultureNode.Value.IsDead)
             {
                 continue;
@@ -208,6 +294,11 @@ public static class Game
 
     private static void TrySpawnZombies(FrameTime time, ref Report report)
     {
+        if (State.IsDead)
+        {
+            return;
+        }
+
         State.ZombieTickCooldown += time.DeltaSeconds;
 
         if (State.ZombieTickCooldown < _definitions.ZombieSpawnTickSeconds)
@@ -232,6 +323,11 @@ public static class Game
 
     private static void TrySpawnVultures(FrameTime time)
     {
+        if (State.IsDead)
+        {
+            return;
+        }
+
         State.VultureTickCooldown += time.DeltaSeconds;
 
         if (State.VultureTickCooldown < _definitions.VultureSpawnTickSeconds)
@@ -279,7 +375,7 @@ public static class Game
         vulture.Component.Index = State.Vultures.Add(vulture);
     }
 
-    private static void UpdateBullets()
+    private static void UpdateBullets(ref Report report)
     {
         var bulletIterator = State.Bullets.Iterate();
 
@@ -287,10 +383,10 @@ public static class Game
         {
             ref var bulletNode = ref bulletIterator.Current();
 
-            CheckBulletZombieCollisions(ref bulletNode);
+            CheckBulletZombieCollisions(ref bulletNode, ref report);
             if (bulletNode.Value.RemainingHits > 0)
             {
-                CheckBulletVultureCollisions(ref bulletNode);
+                CheckBulletVultureCollisions(ref bulletNode, ref report);
             }
 
             var isBulletInsideBounds = IsInsideBounds(bulletNode.Value.Component.transform.position);
@@ -301,7 +397,7 @@ public static class Game
         }
     }
 
-    private static void CheckBulletZombieCollisions(ref ArrayListNode<Bullet> bulletNode)
+    private static void CheckBulletZombieCollisions(ref ArrayListNode<Bullet> bulletNode, ref Report report)
     {
         for (var i = 0; i < bulletNode.Value.Component.CollidedZombies.UsableLength; i++)
         {
@@ -314,6 +410,7 @@ public static class Game
 
             bulletNode.Value.RemainingHits--;
             KillZombie(ref zombieNode);
+            report.KilledZombies++;
 
             if (bulletNode.Value.RemainingHits <= 0)
             {
@@ -324,7 +421,7 @@ public static class Game
         bulletNode.Value.Component.CollidedZombies.Clear();
     }
 
-    private static void CheckBulletVultureCollisions(ref ArrayListNode<Bullet> bulletNode)
+    private static void CheckBulletVultureCollisions(ref ArrayListNode<Bullet> bulletNode, ref Report report)
     {
         for (var i = 0; i < bulletNode.Value.Component.CollidedVultures.UsableLength; i++)
         {
@@ -337,6 +434,7 @@ public static class Game
 
             bulletNode.Value.RemainingHits--;
             KillVulture(ref vultureNode);
+            report.KilledVultures++;
 
             if (bulletNode.Value.RemainingHits <= 0)
             {
@@ -586,6 +684,8 @@ public static class Game
         public int CollectedBullets;
         public Transform CollectedBulletsSource;
         public int SpawnedZombies;
+        public int KilledZombies;
+        public int KilledVultures;
         public bool BulletPenetrationUpgraded;
     }
 
@@ -594,6 +694,7 @@ public static class Game
         public bool FireStraight;
         public bool FireDiagonally;
         public float? ChangedTimeFactor;
+        public bool ToggleAutoFire;
     }
 }
 
@@ -619,6 +720,14 @@ public struct GameState
     public Stack<BulletComponent> BulletComponentsPool;
     public Stack<EnemyComponent> ZombieComponentsPool;
     public Stack<EnemyComponent> VultureComponentsPool;
+    public GameStateAutoFire AutoFire;
+}
+
+public struct GameStateAutoFire
+{
+    public bool IsActive;
+    public int PendingZombieKills;
+    public int PendingVultureKills;
 }
 
 public struct Bullet

@@ -39,7 +39,8 @@ public class Main : MonoBehaviour
             IsLeftMouseButtonDown = Mouse.current.leftButton.wasPressedThisFrame,
             IsRightMouseButtonDown = Mouse.current.rightButton.wasPressedThisFrame,
             IsCtrlKeyDown = Keyboard.current.ctrlKey.wasPressedThisFrame,
-            IsShiftKeyDown = Keyboard.current.shiftKey.wasPressedThisFrame
+            IsShiftKeyDown = Keyboard.current.shiftKey.wasPressedThisFrame,
+            IsF1KeyDown = Keyboard.current.f1Key.wasPressedThisFrame
         };
     }
 }
