@@ -1,9 +1,17 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Main : MonoBehaviour
 {
+    private const string MainSceneName = "Main";
     public Definitions _definitions;
+
+    [RuntimeInitializeOnLoadMethod]
+    private static void LoadMainScene()
+    {
+        SceneManager.LoadScene(MainSceneName, LoadSceneMode.Additive);
+    }
     
     private void Awake()
     {
