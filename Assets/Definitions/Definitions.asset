@@ -12,6 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 387477e072c547d385a4aa743d3af0d0, type: 3}
   m_Name: Definitions
   m_EditorClassIdentifier: 
-  ZombieVelocity: 50
-  VultureVelocity: 100
-  PlayerVelocity: 50
+  PlayerSpeed: 50
+  StartingBulletCount: 3
+  BulletSpeed: 500
+  ZombieBaseSpeed: 50
+  ZombieMinimumSpeedFactor: 0.8
+  ZombieMaximumSpeedFactor: 1.5
+  ZombieSpawnTickSeconds: 0.1
+  DoubleBulletCollectionChance: 0.4
+  VultureSpeed: 100
+  VultureSpawnTickSeconds: 0.25
+  VultureMinimumSpeedFactor: 0.8
+  VultureMaximumSpeedFactor: 1.5

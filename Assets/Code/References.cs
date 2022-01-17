@@ -20,4 +20,6 @@ public class References : MonoBehaviour
     public RectTransform CollectedBulletsParent;
     public TMP_Text[] CollectedBulletVisuals;
     public TMP_Text UpgradeText;
+    public CanvasGroup StartCanvas;
+    public UnityButton StartButton;
 }

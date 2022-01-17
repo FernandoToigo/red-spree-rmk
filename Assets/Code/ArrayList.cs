@@ -4,15 +4,8 @@
     {
         _data = new ArrayListNode<T>[capacity];
         _emptyIndices = new int[capacity];
-        for (var i = 0; i < capacity; i++)
-        {
-            _emptyIndices[i] = i;
-        }
 
-        _currentEmptyIndex = 0;
-        _tailIndex = -1;
-        _headIndex = -1;
-        Count = 0;
+        Clear();
     }
 
     private readonly ArrayListNode<T>[] _data;
@@ -80,6 +73,19 @@
         }
                 
         Count--;
+    }
+
+    public void Clear()
+    {
+        for (var i = 0; i < _emptyIndices.Length; i++)
+        {
+            _emptyIndices[i] = i;
+        }
+
+        _currentEmptyIndex = 0;
+        _tailIndex = -1;
+        _headIndex = -1;
+        Count = 0;
     }
 
     public Iterator Iterate()

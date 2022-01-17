@@ -94,6 +94,13 @@ public static class Game
     {
         var report = new Report();
 
+        TryStartGame(input);
+
+        if (!State.HasStarted)
+        {
+            return report;
+        }
+
         TryToggleAutoFire(input);
         TryAutoFire(ref input);
         TryChangeTimeFactor(input);
@@ -111,6 +118,59 @@ public static class Game
         CheckAutoFirePendingKills(report);
 
         return report;
+    }
+
+    private static void ResetGame()
+    {
+        var previousState = State;
+        State = new GameState
+        {
+            TimeFactor = 1f,
+            PlayerVelocity = _definitions.PlayerSpeed,
+            AvailableBulletCount = _definitions.StartingBulletCount,
+            DiagonalShootDirection = previousState.DiagonalShootDirection,
+            Bullets = previousState.Bullets,
+            Zombies = previousState.Zombies,
+            Vultures = previousState.Vultures,
+            BulletComponentsPool = previousState.BulletComponentsPool,
+            ZombieComponentsPool = previousState.ZombieComponentsPool,
+            VultureComponentsPool = previousState.VultureComponentsPool,
+            VisibilityBounds = previousState.VisibilityBounds,
+            VultureMinHorizontalPosition = previousState.VultureMinHorizontalPosition,
+            VultureMaxHorizontalPosition = previousState.VultureMaxHorizontalPosition,
+            VultureDiveHorizontalPosition = previousState.VultureDiveHorizontalPosition,
+        };
+
+        var bulletsIterator = State.Bullets.Iterate();
+        while (bulletsIterator.Next())
+        {
+            DeactivateBullet(ref bulletsIterator.Current());
+        }
+        
+        var zombiesIterator = State.Zombies.Iterate();
+        while (zombiesIterator.Next())
+        {
+            DeactivateZombie(ref zombiesIterator.Current());
+        }
+        
+        var vulturesIterator = State.Vultures.Iterate();
+        while (vulturesIterator.Next())
+        {
+            DeactivateVulture(ref vulturesIterator.Current());
+        }
+        
+        _references.Player.Animator.Play(PlayerAnimations.Running);
+    }
+
+    private static void TryStartGame(Input input)
+    {
+        if (!input.StartGame)
+        {
+            return;
+        }
+
+        ResetGame();
+        State.HasStarted = true;
     }
 
     private static void TryToggleAutoFire(Input input)
@@ -243,7 +303,7 @@ public static class Game
         if (!State.IsDead)
         {
             CheckZombieCollisions(ref report);
-            CheckVultureCollisions();
+            CheckVultureCollisions(ref report);
         }
 
         _references.Player.CollidedZombies.Clear();
@@ -264,13 +324,13 @@ public static class Game
             }
             else
             {
-                KillPlayer();
+                KillPlayer(ref report);
                 break;
             }
         }
     }
 
-    private static void CheckVultureCollisions()
+    private static void CheckVultureCollisions(ref Report report)
     {
         for (var i = 0; i < _references.Player.CollidedVultures.UsableLength; i++)
         {
@@ -280,13 +340,14 @@ public static class Game
                 continue;
             }
 
-            KillPlayer();
+            KillPlayer(ref report);
             break;
         }
     }
 
-    private static void KillPlayer()
+    private static void KillPlayer(ref Report report)
     {
+        report.Died = true;
         State.IsDead = true;
         State.PlayerVelocity = 0f;
         _references.Player.Animator.Play(PlayerAnimations.Dying);
@@ -309,7 +370,7 @@ public static class Game
         State.ZombieTickCooldown -= _definitions.ZombieSpawnTickSeconds;
         var x = State.SecondsPassed;
         const float p = 15f;
-        const float maxZombies = 3f;
+        const float maxZombies = 1f;
         // https://www.desmos.com/calculator/1o7gniviux
         var waveFactor = ((Mathf.Sin((x - p / 4f) * Mathf.PI * 2f / p) + 1f) / 2f) * Mathf.Pow(x / p, 1.6f);
         var percentSpawned = Mathf.Clamp01(State.Zombies.Count / (waveFactor * maxZombies));
@@ -661,6 +722,7 @@ public static class Game
     {
         State.Zombies.Remove(ref zombie);
         State.ZombieComponentsPool.Push(zombie.Value.Component);
+        zombie.Value.Component.RigidBody.velocity = new Vector2();
         zombie.Value.Component.RigidBody.detectCollisions = false;
         zombie.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
@@ -669,6 +731,7 @@ public static class Game
     {
         State.Vultures.Remove(ref vulture);
         State.VultureComponentsPool.Push(vulture.Value.Component);
+        vulture.Value.Component.RigidBody.velocity = new Vector2();
         vulture.Value.Component.RigidBody.detectCollisions = false;
         vulture.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
@@ -687,10 +750,12 @@ public static class Game
         public int KilledZombies;
         public int KilledVultures;
         public bool BulletPenetrationUpgraded;
+        public bool Died;
     }
 
     public struct Input
     {
+        public bool StartGame;
         public bool FireStraight;
         public bool FireDiagonally;
         public float? ChangedTimeFactor;
@@ -700,6 +765,7 @@ public static class Game
 
 public struct GameState
 {
+    public bool HasStarted;
     public float TimeFactor;
     public float SecondsPassed;
     public float PlayerVelocity;

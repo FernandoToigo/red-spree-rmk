@@ -23,6 +23,17 @@ public static class UserInterface
     public static void Update(ref Game.Input gameInput)
     {
         UpdateTimeFactor(ref gameInput);
+        TryStartGame(ref gameInput);
+    }
+
+    private static void TryStartGame(ref Game.Input gameInput)
+    {
+        if (_references.StartButton.IsUp)
+        {
+            gameInput.StartGame = true;
+            _references.StartCanvas.alpha = 0f;
+            _references.StartCanvas.blocksRaycasts = false;
+        }
     }
 
     private static void UpdateTimeFactor(ref Game.Input gameInput)
@@ -44,6 +55,18 @@ public static class UserInterface
         ShowCollectedBullets(gameReport);
         UpdateCollectedBullets(time);
         TryUpdateUpgradeAnimation(gameReport, time);
+        TryShowRestartScreen(gameReport);
+    }
+
+    private static void TryShowRestartScreen(Game.Report gameReport)
+    {
+        if (!gameReport.Died)
+        {
+            return;
+        }
+        
+        _references.StartCanvas.alpha = 1f;
+        _references.StartCanvas.blocksRaycasts = true;
     }
 
     private static void TryUpdateUpgradeAnimation(Game.Report gameReport, FrameTime time)
