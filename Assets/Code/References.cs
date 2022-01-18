@@ -22,4 +22,7 @@ public class References : MonoBehaviour
     public TMP_Text UpgradeText;
     public CanvasGroup StartCanvas;
     public UnityButton StartButton;
+    public AudioSource MusicAudioSource;
+    public AudioSource[] BulletAudioSources;
+    public AudioSource[] EnemyDeathAudioSources;
 }

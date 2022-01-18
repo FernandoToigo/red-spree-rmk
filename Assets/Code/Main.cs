@@ -18,6 +18,7 @@ public class Main : MonoBehaviour
         var references = FindObjectOfType<References>();
         Game.Initialize(references, _definitions);
         UserInterface.Initialize(references);
+        GameAudio.Initialize(references);
     }
 
     public void FixedUpdate()
@@ -30,6 +31,7 @@ public class Main : MonoBehaviour
         GameInput.Update(ref gameInput, hardInput);
         var gameReport = Game.Update(gameInput, time);
         UserInterface.Render(gameReport, time);
+        GameAudio.Update(gameReport);
     }
 
     private static FrameTime GetFrameTime()
