@@ -21,9 +21,37 @@ public static State State;
 
 public static Report Update(Input input)
 {
-   // Changes state based on input and return a report containing what changed.
+   // Changes State based on Input and return a Report containing what has changed.
 }
 ```
-Where Input is a struct containing what needs to be executed in this system and the returned Report is another struct containing what has changed. This report struct is then spread throughout the other systems, replacing the functionality which would used be accomplished by invoking events or using the observable pattern.
+Where Input is a struct containing what needs to be executed in this system and the returned Report is another struct containing what has changed. This report struct is then spread throughout the other systems, replacing the functionality which would be accomplished by invoking events or using the observable pattern.
 
 Also, usage of callbacks is avoided and replaced by polling methods when possible. This makes the code easier to understand as a whole because there are never surprises on the call stack of function calls.
+
+### Frame
+
+In this project a frame is defined as:
+
+```csharp
+    public void FixedUpdate()
+    {
+        var hardInput = GetHardInput();                // (1)
+        var gameInput = new Game.Input();              // (2)
+        var time = GetFrameTime();                     // (3)
+
+        UserInterface.Update(ref gameInput);           // (4)
+        GameInput.Update(ref gameInput, hardInput);    // (5)
+        var gameReport = Game.Update(gameInput, time); // (6)
+        UserInterface.Render(gameReport, time);        // (7)
+        GameAudio.Update(gameReport);                  // (8)
+    }
+```
+
+(1) Gathers hardware input from the devices.  
+(2) Creates a struct which contains commands for the game to execute.  
+(3) Creates a struct containing the delta time for this frame.  
+(4) The UserInterface updates by changing the game input if necessary. i.e. when the button to start the game is pressed.  
+(5) The GameInput updates by transforming hardware input into game input.  
+(6) The Game simulation is updated based on the input, generating a report containing change information.  
+(7) The Game report is passed to the UserInterface to update data on screen or to start animations.  
+(8) The Game report is passed to the GameAudio to start playing sound effects.
