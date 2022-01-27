@@ -55,3 +55,11 @@ In this project a frame is defined as:
 (6) The Game simulation is updated based on the input, generating a report containing change information.  
 (7) The Game report is passed to the UserInterface to update data on screen or to start animations.  
 (8) The Game report is passed to the GameAudio to start playing sound effects.
+
+### Automated Tests
+
+We can create tests which pass through every system in the frame by creating a similar frame function from the real one and mocking the hardware input instead of gathering them from the real devices.
+
+Furthermore, any system can be easily tested individually by calling its update function with the corresponding input and analyzing the returned report and/or checking the changes in its internal state. An example of this type of test is implemented in the GameTests class of this project.
+
+Because all the game logic is not tied to the Update event from Unity, these tests can be run as EditMode Tests. This means that tests that would otherwise require a lot of real time to finish are executed as fast as possible, making it feasible to execute them frequently as opposed to waiting for a CI process to be run.

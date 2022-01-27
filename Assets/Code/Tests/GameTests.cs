@@ -19,7 +19,19 @@ public class GameTests
         Game.Initialize(references, definitions);
     }
 
-    private Game.Report RunFrame(Game.Input input)
+    private static Game.Input EmptyInput() => new Game.Input();
+    
+    private static Game.Input StartInput() => new Game.Input
+    {
+        StartGame = true
+    };
+    
+    private static Game.Input FireStraightInput() => new Game.Input
+    {
+        FireStraight = true
+    };
+    
+    private static Game.Report RunFrame(Game.Input input)
     {
         var deltaSeconds = Time.fixedDeltaTime;
         return Game.Update(input, new FrameTime
@@ -28,7 +40,7 @@ public class GameTests
         });
     }
 
-    private void RunFramesUntil(Game.Input input, Func<Game.Report, bool> stopFunction)
+    private static void RunFramesUntil(Game.Input input, Func<Game.Report, bool> stopFunction)
     {
         while (true)
         {
@@ -54,21 +66,20 @@ public class GameTests
     [Test]
     public void ShootAtZombie_ZombiesGetKilled()
     {
+        RunFrame(StartInput());
+        
         for (var i = 0; i < 5; i++)
         {
-            RunFramesUntil(new Game.Input(), report =>
+            RunFramesUntil(EmptyInput(), report =>
             {
                 AssertPlayerIsAlive();
                 return report.SpawnedZombies > 0;
             });
-            RunFrame(new Game.Input
-            {
-                FireStraight = true
-            });
+            RunFrame(FireStraightInput());
             AssertPlayerIsAlive();
         }
         
-        RunFramesUntil(new Game.Input(), _ =>
+        RunFramesUntil(EmptyInput(), _ =>
         {
             AssertPlayerIsAlive();
             return Game.State.EnemiesKilled >= 5;
