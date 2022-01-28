@@ -54,7 +54,7 @@ public static class Game
     private static void InitializeBullets()
     {
         State.AvailableBulletCount = _definitions.StartingBulletCount;
-        State.Bullets = new ArrayList<Bullet>(_references.Bullets.Length);
+        State.Bullets = new ArrayLinkedList<Bullet>(_references.Bullets.Length);
         State.BulletComponentsPool = new Stack<BulletComponent>(_references.Bullets.Length);
 
         foreach (var bullet in _references.Bullets)
@@ -68,7 +68,7 @@ public static class Game
 
     private static void InitializeZombies()
     {
-        State.Zombies = new ArrayList<Zombie>(_references.Zombies.Length);
+        State.Zombies = new ArrayLinkedList<Zombie>(_references.Zombies.Length);
         State.ZombieComponentsPool = new Stack<EnemyComponent>(_references.Zombies.Length);
 
         foreach (var zombie in _references.Zombies)
@@ -80,7 +80,7 @@ public static class Game
 
     private static void InitializeVultures()
     {
-        State.Vultures = new ArrayList<Vulture>(_references.Vultures.Length);
+        State.Vultures = new ArrayLinkedList<Vulture>(_references.Vultures.Length);
         State.VultureComponentsPool = new Stack<EnemyComponent>(_references.Vultures.Length);
 
         foreach (var vulture in _references.Vultures)
@@ -458,7 +458,7 @@ public static class Game
         }
     }
 
-    private static void CheckBulletZombieCollisions(ref ArrayListNode<Bullet> bulletNode, ref Report report)
+    private static void CheckBulletZombieCollisions(ref ArrayLinkedListNode<Bullet> bulletNode, ref Report report)
     {
         for (var i = 0; i < bulletNode.Value.Component.CollidedZombies.UsableLength; i++)
         {
@@ -482,7 +482,7 @@ public static class Game
         bulletNode.Value.Component.CollidedZombies.Clear();
     }
 
-    private static void CheckBulletVultureCollisions(ref ArrayListNode<Bullet> bulletNode, ref Report report)
+    private static void CheckBulletVultureCollisions(ref ArrayLinkedListNode<Bullet> bulletNode, ref Report report)
     {
         for (var i = 0; i < bulletNode.Value.Component.CollidedVultures.UsableLength; i++)
         {
@@ -550,7 +550,7 @@ public static class Game
         }
     }
 
-    private static void UpdateVultureFlyingLeft(ref ArrayListNode<Vulture> vultureNode)
+    private static void UpdateVultureFlyingLeft(ref ArrayLinkedListNode<Vulture> vultureNode)
     {
         if (vultureNode.Value.Component.transform.position.x >= State.VultureMinHorizontalPosition)
         {
@@ -562,7 +562,7 @@ public static class Game
         vultureNode.Value.Component.RigidBody.velocity = new Vector2(GetVultureSpeed(ref vultureNode.Value), 0f);
     }
 
-    private static void UpdateVultureFlyingRight(ref ArrayListNode<Vulture> vultureNode)
+    private static void UpdateVultureFlyingRight(ref ArrayLinkedListNode<Vulture> vultureNode)
     {
         if (vultureNode.Value.Component.transform.position.x <= State.VultureMaxHorizontalPosition)
         {
@@ -581,7 +581,7 @@ public static class Game
         vultureNode.Value.Component.RigidBody.velocity = new Vector2(-GetVultureSpeed(ref vultureNode.Value), 0f);
     }
 
-    private static void UpdateVulturePreparingDive(ref ArrayListNode<Vulture> vultureNode)
+    private static void UpdateVulturePreparingDive(ref ArrayLinkedListNode<Vulture> vultureNode)
     {
         if (vultureNode.Value.Component.transform.position.x > State.VultureDiveHorizontalPosition)
         {
@@ -596,7 +596,7 @@ public static class Game
             differenceToPlayer.normalized * GetVultureSpeed(ref vultureNode.Value);
     }
 
-    private static void UpdateVultureDying(ref ArrayListNode<Vulture> vultureNode)
+    private static void UpdateVultureDying(ref ArrayLinkedListNode<Vulture> vultureNode)
     {
         var animatorState = vultureNode.Value.Component.Animator.GetCurrentAnimatorStateInfo(0);
         if (animatorState.IsName(VultureAnimations.Dying) && animatorState.normalizedTime >= 1f)
@@ -661,7 +661,7 @@ public static class Game
         bullet.Component.transform.localRotation = Quaternion.LookRotation(Vector3.forward, upwards);
     }
 
-    private static void DeactivateBullet(ref ArrayListNode<Bullet> bulletNode)
+    private static void DeactivateBullet(ref ArrayLinkedListNode<Bullet> bulletNode)
     {
         State.Bullets.Remove(ref bulletNode);
         State.BulletComponentsPool.Push(bulletNode.Value.Component);
@@ -701,7 +701,7 @@ public static class Game
         return new Vector2(velocity, 0f);
     }
 
-    private static void KillZombie(ref ArrayListNode<Zombie> zombieNode)
+    private static void KillZombie(ref ArrayLinkedListNode<Zombie> zombieNode)
     {
         State.EnemiesKilled++;
         zombieNode.Value.IsDead = true;
@@ -709,7 +709,7 @@ public static class Game
         zombieNode.Value.Component.RigidBody.velocity = new Vector2(State.PlayerVelocity * -1f, 0f);
     }
 
-    private static void KillVulture(ref ArrayListNode<Vulture> vultureNode)
+    private static void KillVulture(ref ArrayLinkedListNode<Vulture> vultureNode)
     {
         State.EnemiesKilled++;
         vultureNode.Value.IsDead = true;
@@ -718,7 +718,7 @@ public static class Game
         vultureNode.Value.Action = VultureAction.Dying;
     }
 
-    private static void DeactivateZombie(ref ArrayListNode<Zombie> zombie)
+    private static void DeactivateZombie(ref ArrayLinkedListNode<Zombie> zombie)
     {
         State.Zombies.Remove(ref zombie);
         State.ZombieComponentsPool.Push(zombie.Value.Component);
@@ -727,7 +727,7 @@ public static class Game
         zombie.Value.Component.transform.position = new Vector3(-1000f, 0f, 0f);
     }
 
-    private static void DeactivateVulture(ref ArrayListNode<Vulture> vulture)
+    private static void DeactivateVulture(ref ArrayLinkedListNode<Vulture> vulture)
     {
         State.Vultures.Remove(ref vulture);
         State.VultureComponentsPool.Push(vulture.Value.Component);
@@ -780,9 +780,9 @@ public struct GameState
     public float VultureMinHorizontalPosition;
     public float VultureMaxHorizontalPosition;
     public float VultureDiveHorizontalPosition;
-    public ArrayList<Vulture> Vultures;
-    public ArrayList<Bullet> Bullets;
-    public ArrayList<Zombie> Zombies;
+    public ArrayLinkedList<Vulture> Vultures;
+    public ArrayLinkedList<Bullet> Bullets;
+    public ArrayLinkedList<Zombie> Zombies;
     public Stack<BulletComponent> BulletComponentsPool;
     public Stack<EnemyComponent> ZombieComponentsPool;
     public Stack<EnemyComponent> VultureComponentsPool;

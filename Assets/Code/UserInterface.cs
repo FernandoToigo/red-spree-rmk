@@ -16,7 +16,7 @@ public static class UserInterface
 
     private static void InitializeCollectedBullets()
     {
-        _state.CollectedBullets = new ArrayList<CollectedBulletState>(_references.CollectedBulletVisuals.Length);
+        _state.CollectedBullets = new ArrayLinkedList<CollectedBulletState>(_references.CollectedBulletVisuals.Length);
         _state.AvailableCollectedBulletVisuals = new Stack<TMP_Text>(_references.CollectedBulletVisuals);
     }
 
@@ -178,7 +178,7 @@ public static class UserInterface
     private struct State
     {
         public Stack<TMP_Text> AvailableCollectedBulletVisuals;
-        public ArrayList<CollectedBulletState> CollectedBullets;
+        public ArrayLinkedList<CollectedBulletState> CollectedBullets;
         public float UpgradeAnimationPercent;
     }
 

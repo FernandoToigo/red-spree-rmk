@@ -1,31 +1,31 @@
-﻿public class ArrayList<T>
+﻿public class ArrayLinkedList<T>
 {
-    public ArrayList(int capacity)
+    public ArrayLinkedList(int capacity)
     {
-        _data = new ArrayListNode<T>[capacity];
+        _data = new ArrayLinkedListNode<T>[capacity];
         _emptyIndices = new int[capacity];
 
         Clear();
     }
 
-    private readonly ArrayListNode<T>[] _data;
+    private readonly ArrayLinkedListNode<T>[] _data;
     private readonly int[] _emptyIndices;
     private int _currentEmptyIndex;
     private int _tailIndex;
     private int _headIndex;
     public int Count { get; private set; }
 
-    public ref ArrayListNode<T> Tail() => ref _data[_tailIndex];
-    public ref ArrayListNode<T> Head() => ref _data[_headIndex];
-    public ref ArrayListNode<T> GetAt(int index) => ref _data[index];
-    public ref ArrayListNode<T> Previous(ref ArrayListNode<T> node) => ref _data[node.PreviousIndex];
-    public ref ArrayListNode<T> Next(ref ArrayListNode<T> node) => ref _data[node.NextIndex];
+    public ref ArrayLinkedListNode<T> Tail() => ref _data[_tailIndex];
+    public ref ArrayLinkedListNode<T> Head() => ref _data[_headIndex];
+    public ref ArrayLinkedListNode<T> GetAt(int index) => ref _data[index];
+    public ref ArrayLinkedListNode<T> Previous(ref ArrayLinkedListNode<T> node) => ref _data[node.PreviousIndex];
+    public ref ArrayLinkedListNode<T> Next(ref ArrayLinkedListNode<T> node) => ref _data[node.NextIndex];
 
     public int Add(T value)
     {
         var index = _emptyIndices[_currentEmptyIndex];
         _currentEmptyIndex++;
-        _data[index] = new ArrayListNode<T>
+        _data[index] = new ArrayLinkedListNode<T>
         {
             Value = value,
             Index = index,
@@ -48,7 +48,7 @@
         return index;
     }
 
-    public void Remove(ref ArrayListNode<T> node)
+    public void Remove(ref ArrayLinkedListNode<T> node)
     {
         _currentEmptyIndex--;
         _emptyIndices[_currentEmptyIndex] = node.Index;
@@ -92,28 +92,28 @@
     {
         return new Iterator
         {
-            List = this,
+            LinkedList = this,
             CurrentIndex = -1
         };
     }
 
     public struct Iterator
     {
-        public ArrayList<T> List;
+        public ArrayLinkedList<T> LinkedList;
         public int CurrentIndex;
 
-        public ref ArrayListNode<T> Current()
+        public ref ArrayLinkedListNode<T> Current()
         {
-            return ref List.GetAt(CurrentIndex);
+            return ref LinkedList.GetAt(CurrentIndex);
         }
 
         public bool Next()
         {
             if (CurrentIndex == -1)
             {
-                if (List.Count > 0)
+                if (LinkedList.Count > 0)
                 {
-                    CurrentIndex = List._tailIndex;
+                    CurrentIndex = LinkedList._tailIndex;
                     return true;
                 }
                 

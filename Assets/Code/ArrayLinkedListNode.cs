@@ -1,4 +1,4 @@
-﻿public struct ArrayListNode<T>
+﻿public struct ArrayLinkedListNode<T>
 {
     public T Value;
     public int PreviousIndex;

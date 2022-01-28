@@ -58,8 +58,34 @@ In this project a frame is defined as:
 
 ### Automated Tests
 
-We can create tests which pass through every system in the frame by creating a similar frame function from the real one and mocking the hardware input instead of gathering them from the real devices.
+We can create tests which pass through every system by creating a similar frame function from the real one and mocking the hardware input instead of gathering them from the real devices.
 
-Furthermore, any system can be easily tested individually by calling its update function with the corresponding input and analyzing the returned report and/or checking the changes in its internal state. An example of this type of test is implemented in the GameTests class of this project.
+Furthermore, any system can be easily tested individually by calling its update function with the corresponding input and then analyzing the returned report and/or checking the changes in its internal state. An example of this type of test is implemented in the GameTests class of this project.
 
 Because all the game logic is not tied to the Update event from Unity, these tests can be run as EditMode Tests. This means that tests that would otherwise require a lot of real time to finish are executed as fast as possible, making it feasible to execute them frequently as opposed to waiting for a CI process to be run.
+
+### Performance
+
+This architecture allows for any type of design to be used inside a system class. For example, the Game class could be constructed using a data oriented design or as ECS, which can leverage better use of the CPU cache than the usual Unity component system.
+
+Moreover, this project contains two new types of containers which help to increase the overall performance of the game:
+
+- Reusable array: basically an encapsulation of an array and an integer which indicates how many elements of the array are set. It behaves very similarly to a List, but has fixed size which may help avoid unexpected heap allocations.
+
+ - ArrayLinkedList: doubly linked list implemented with an array. It has O(1) complexity for inserting, removal and random access. If the element type is a struct, the data also has the advantage of being laid out contiguously in memory. The disadvantage is its fixed size and higher memory footprint.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
