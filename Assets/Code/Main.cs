@@ -26,7 +26,7 @@ public class Main : MonoBehaviour
         var hardInput = GetHardInput();
         var gameInput = new Game.Input();
         var time = GetFrameTime();
-
+        
         UserInterface.Update(ref gameInput);
         GameInput.Update(ref gameInput, hardInput);
         var gameReport = Game.Update(gameInput, time);

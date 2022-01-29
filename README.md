@@ -30,7 +30,7 @@ Also, usage of callbacks is avoided and replaced by polling methods when possibl
 
 ### Frame
 
-In this project a frame is defined as:
+For this specific game the frame is defined as:
 
 ```csharp
     public void FixedUpdate()
@@ -56,6 +56,19 @@ In this project a frame is defined as:
 (7) The Game report is passed to the UserInterface to update data on screen or to start animations.  
 (8) The Game report is passed to the GameAudio to start playing sound effects.
 
+Because there's only one entry point, it is easy to change the way the frame is defined. For example, we can simulate any frame time we want or mock the input if we need to. We can also decide whenever we want if we want to the FixedUpdate or Update.
+
+Since the introduction of the new Input System we can now read user input from the FixedUpdate. This enables us to write game logic in this event, gaining the following advantages:
+
+- Game logic and physics force changes can be done in the same frame function.
+- Avoids problems with very high or very low frame times.
+- Frees resources for better rendering performance.
+
+While having the following disadvantages:
+
+- Rendering frames without a game simulation in between is useless because there is no change between them, so the frames are identical. This can be solved by implementing an interpolation on the visuals between game states.
+- If frames start to take more than the fixed time step to finish then the game is going to start falling. If the frames start to get faster then it can recover otherwise frames may be dropped.
+
 ### Automated Tests
 
 We can create tests which pass through every system by creating a similar frame function from the real one and mocking the hardware input instead of gathering them from the real devices.
@@ -70,9 +83,9 @@ This architecture allows for any type of design to be used inside a system class
 
 Moreover, this project contains two new types of containers which help to increase the overall performance of the game:
 
-- Reusable array: basically an encapsulation of an array and an integer which indicates how many elements of the array are set. It behaves very similarly to a List, but has fixed size which may help avoid unexpected heap allocations.
+- ReusableArray: basically an encapsulation of an array and an integer which indicates how many elements of the array are set. It behaves very similarly to a List, but has fixed size which may help avoid unexpected heap allocations.
 
- - ArrayLinkedList: doubly linked list implemented with an array. It has O(1) complexity for inserting, removal and random access. If the element type is a struct, the data also has the advantage of being laid out contiguously in memory. The disadvantage is its fixed size and higher memory footprint.
+- ArrayLinkedList: doubly linked list implemented with an array. It has O(1) complexity for inserting, removal and random access. If the element type is a struct, the data also has the advantage of being laid out contiguously in memory. The disadvantage is its fixed size and higher memory footprint.
 
 
 
