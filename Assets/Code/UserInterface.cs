@@ -10,6 +10,7 @@ public static class UserInterface
     public static void Initialize(References references)
     {
         _references = references;
+        
         InitializeCollectedBullets();
         UpdateBulletCount();
     }
@@ -159,7 +160,7 @@ public static class UserInterface
 
     private static void TryUpdateBulletCount(Game.Report gameReport)
     {
-        if (gameReport.FiredBullet || gameReport.CollectedBullets > 0)
+        if (gameReport.GameStarted || gameReport.FiredBullet || gameReport.CollectedBullets > 0)
         {
             UpdateBulletCount();
         }

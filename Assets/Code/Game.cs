@@ -94,7 +94,7 @@ public static class Game
     {
         var report = new Report();
 
-        TryStartGame(input);
+        TryStartGame(input, ref report);
 
         if (!State.HasStarted)
         {
@@ -162,7 +162,7 @@ public static class Game
         _references.Player.Animator.Play(PlayerAnimations.Running);
     }
 
-    private static void TryStartGame(Input input)
+    private static void TryStartGame(Input input, ref Report report)
     {
         if (!input.StartGame)
         {
@@ -171,6 +171,7 @@ public static class Game
 
         ResetGame();
         State.HasStarted = true;
+        report.GameStarted = true;
     }
 
     private static void TryToggleAutoFire(Input input)
@@ -743,6 +744,7 @@ public static class Game
 
     public struct Report
     {
+        public bool GameStarted;
         public bool FiredBullet;
         public int CollectedBullets;
         public Transform CollectedBulletsSource;

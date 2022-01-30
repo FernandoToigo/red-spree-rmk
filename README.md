@@ -91,7 +91,10 @@ Moreover, this project contains two new types of containers which help to increa
 
 - ArrayLinkedList: doubly linked list implemented with an array. It has O(1) complexity for inserting, removal and random access. If the element type is a struct, the data also has the advantage of being laid out contiguously in memory. The disadvantages are its fixed size and higher memory footprint compared to a regular List.
 
+<!-- Pools with editor time instantiation -->
+
 <!-- 
+More topics:
 Physics
 Rendering
 Definitions
