@@ -34,28 +34,15 @@ Speaking of events, usage of callbacks is avoided and replaced by polling method
 For this specific game the update/frame function of Main is defined as:
 
 ```csharp
-    public void FixedUpdate()
-    {
-        var hardInput = GetHardInput();                // (1)
-        var gameInput = new Game.Input();              // (2)
-        var time = GetFrameTime();                     // (3)
-
-        UserInterface.Update(ref gameInput);           // (4)
-        GameInput.Update(ref gameInput, hardInput);    // (5)
-        var gameReport = Game.Update(gameInput, time); // (6)
-        UserInterface.Render(gameReport, time);        // (7)
-        GameAudio.Update(gameReport);                  // (8)
-    }
-    
     private static void GameplayFrame(FrameTime time, HardInput hardInput) // (1)
     {
-        var gameInput = new Game.Input();                                  // (2)
+        var gameInput = new Game.Input();              // (2)
         
-        UserInterface.Update(ref gameInput);                               // (3)
-        GameInput.Update(ref gameInput, hardInput);                        // (4)
-        var gameReport = Game.Update(gameInput, time);                     // (5)
-        UserInterface.Render(gameReport, time);                            // (6)
-        GameAudio.Update(gameReport);                                      // (7)
+        UserInterface.Update(ref gameInput);           // (3)
+        GameInput.Update(ref gameInput, hardInput);    // (4)
+        var gameReport = Game.Update(gameInput, time); // (5)
+        UserInterface.Render(gameReport, time);        // (6)
+        GameAudio.Update(gameReport);                  // (7)
     }
 ```
 
