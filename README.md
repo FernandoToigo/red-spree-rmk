@@ -34,16 +34,16 @@ Speaking of events, usage of callbacks is avoided and replaced by polling method
 For this specific game the update/frame function of Main is defined as:
 
 ```csharp
-    private static void GameplayFrame(FrameTime time, HardInput hardInput) // (1)
-    {
-        var gameInput = new Game.Input();              // (2)
-        
-        UserInterface.Update(ref gameInput);           // (3)
-        GameInput.Update(ref gameInput, hardInput);    // (4)
-        var gameReport = Game.Update(gameInput, time); // (5)
-        UserInterface.Render(gameReport, time);        // (6)
-        GameAudio.Update(gameReport);                  // (7)
-    }
+private static void GameplayFrame(FrameTime time, HardInput hardInput) // (1)
+{
+    var gameInput = new Game.Input();              // (2)
+    
+    UserInterface.Update(ref gameInput);           // (3)
+    GameInput.Update(ref gameInput, hardInput);    // (4)
+    var gameReport = Game.Update(gameInput, time); // (5)
+    UserInterface.Render(gameReport, time);        // (6)
+    GameAudio.Update(gameReport);                  // (7)
+}
 ```
 
 (1) Receives hardware input and delta time for this frame.  
@@ -90,11 +90,26 @@ Moreover, this project contains two new types of containers which help to increa
 
 This project also uses the usual object pool techniques to avoid unnecessary instantiations on runtime. All the objects are created in editor time inside the scenes and are reused while executing. The ideal process is to add beforehand enough elements based on the quantity necessary for the current gameplay implementation.
 
+### Physics
+
+As previously mentioned, running the game simulation in the FixedUpdate ties it to the physics. If we want even more control we can even opt to disable the automatic physics simulation from Unity and then run it ourselves at any part of the frame.
+
+The biggest downside in this project's architecture, however, is how to receive physics events. Unity only allows receiving collision events by the OnCollision/OnTrigger functions on the MonoBehaviours, and so we are obligated to work with some type of callback design.
+
+The ideal API that would fit this architecture would be to receive the resulted collisions directly from the physics frame simulation call, something like the following:
+
+```cshap
+CollisionEvents[] collisions = Physics.Simulate(time.DeltaSeconds);
+```
+
+In this project a workaround was used to solve this problem by storing every collision into collections which would then be read and cleared in the next frame.
+
+### Rendering
+
+In this project the game simulation and rendering are mixed up in the Game class, noted by the access of Transforms directly. It was made this way to boost productivity, but those concepts can be separated if necessary. Doing so would facilitate adding rendering interpolation between game states and would allow testing the game simulation without the hurdle of loading a scene beforehand.
+
 <!-- 
 More topics:
-Physics
-Rendering
-Definitions
 Design Decisions Reasoning
 -->
 
