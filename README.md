@@ -46,16 +46,26 @@ For this specific game the update/frame function of Main is defined as:
         UserInterface.Render(gameReport, time);        // (7)
         GameAudio.Update(gameReport);                  // (8)
     }
+    
+    private static void GameplayFrame(FrameTime time, HardInput hardInput) // (1)
+    {
+        var gameInput = new Game.Input();                                  // (2)
+        
+        UserInterface.Update(ref gameInput);                               // (3)
+        GameInput.Update(ref gameInput, hardInput);                        // (4)
+        var gameReport = Game.Update(gameInput, time);                     // (5)
+        UserInterface.Render(gameReport, time);                            // (6)
+        GameAudio.Update(gameReport);                                      // (7)
+    }
 ```
 
-(1) Gathers hardware input from the devices.  
-(2) Creates a struct which contains commands for the game to execute.  
-(3) Creates a struct containing the delta time for this frame.  
-(4) Calls the UserInterface Update which changes the game input when necessary. i.e. when the button to start the game is pressed.  
-(5) Calls the GameInput update which transforms hardware input into game input.  
-(6) Calls the Game update which changes the game simulation based on the input, generating a report containing change information.  
-(7) Calls another UserInterface function which uses the game report to update data on screen or to start animations.  
-(8) Calls the GameAudio update which plays sound effects based on the changes on the game simulation.
+(1) Receives hardware input and delta time for this frame.  
+(2) Creates a struct which contains input for the game simulation to execute.  
+(3) Calls the UserInterface Update which changes the game input when necessary. i.e. when the button to start the game is pressed.  
+(4) Calls the GameInput update which transforms hardware input into game input.  
+(5) Calls the Game update which changes the game simulation based on the input, generating a report containing change information.  
+(6) Calls another UserInterface function which uses the game report to update data on screen or to start animations.  
+(7) Calls the GameAudio update which plays sound effects based on the changes on the game simulation.
 
 Because there's only one entry point for every frame, it is easy to change the way the frame is defined. For example, we can simulate any frame time we want or mock the input if we need to. We can also easily change which Unity frame function (Update/LateUpdate/FixedUpdate) we want the game to run.
 
