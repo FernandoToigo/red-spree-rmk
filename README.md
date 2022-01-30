@@ -88,7 +88,7 @@ Moreover, this project contains two new types of containers which help to increa
 
 - ArrayLinkedList: doubly linked list implemented with an array. It has O(1) complexity for inserting, removal and random access. If the element type is a struct, the data also has the advantage of being laid out contiguously in memory. The disadvantages are its fixed size and higher memory footprint compared to a regular List.
 
-<!-- Pools with editor time instantiation -->
+This project also uses the usual object pool techniques to avoid unnecessary instantiations on runtime. All the objects are created in editor time inside the scenes and are reused while executing. The ideal process is to add beforehand enough elements based on the quantity necessary for the current gameplay implementation.
 
 <!-- 
 More topics:
