@@ -92,21 +92,21 @@ This project also uses the usual object pool techniques to avoid unnecessary ins
 
 ### Physics
 
-As previously mentioned, running the game simulation in the FixedUpdate ties it to the physics. If we want even more control we can even opt to disable the automatic physics simulation from Unity and then run it ourselves at any part of the frame.
+As previously mentioned, running the game simulation in the FixedUpdate brings the advantage of tying it to the physics simulation. But if we want even more control we can even opt to disable the automatic physics simulation from Unity and then run it ourselves at any part of the frame.
 
-The biggest downside in this project's architecture, however, is how to receive physics events. Unity only allows receiving collision events by the OnCollision/OnTrigger functions on the MonoBehaviours, and so we are obligated to work with some type of callback design.
+Receiving collision events, though, is a little bit of an obstacle. Unity only allows receiving collision events by the OnCollision/OnTrigger functions on MonoBehaviours, forcing us to work with some type of callback based design.
 
-The ideal API that would fit this architecture would be to receive the resulted collision events directly from the physics frame simulation call, something like the following:
+The ideal approach that would benefit most this architecture would be to receive the resulted collision events directly from the physics frame simulation call, something like the following:
 
 ```csharp
-CollisionEvents[] collisions = Physics.Simulate(time.DeltaSeconds);
+CollisionEvents[] collisionEvents = Physics.Simulate(time.DeltaSeconds);
 ```
 
-In this project a workaround was used to solve this problem by storing every collision into collections which would then be read and cleared in the next frame.
+Unfortunately, this is yet no possible. In the meantime, this problem was solved in this project by using a workaround where every collision event is stored into collections which are then read and cleared in the next frame.
 
 ### Rendering
 
-In this project the game simulation and rendering are mixed up in the Game class, noted by the access of Transforms directly. It was made this way to boost productivity, but those concepts can be separated if necessary. Doing so would facilitate adding rendering interpolation between game states and would allow testing the game simulation without the hurdle of loading a scene beforehand.
+Currently, the game simulation and rendering are mixed up in the Game class, noted by the access of Transforms directly. It was made this way to boost productivity, but those concepts can be separated if necessary. Doing so would facilitate adding rendering interpolation between game states and also allow testing the game simulation without the hurdle of loading a scene beforehand.
 
 ### Design Decisions
 
@@ -114,20 +114,8 @@ One of the most proclaimed reasons for the adoption of OOP or the Unity Componen
 
 One common solution to this problem is to create some type of design or engineering to replace this coupling, such as using Singletons or ScriptableObjects to act as mediators. But those come with their own problems.
 
-However, in my opinion, the biggest problem with micro separations and over engineering is that the project becomes more and more complex to understand in a macro level. This becomes obvious when you try asking for someone new to the project to figure out how it works by looking at the code and a scene full of game objects. Its easy to spot the individual parts but the game as a whole becomes hard to grasp.
+However, in my opinion, the biggest problem with micro separations and over engineering is that the project becomes more and more complex to understand in a macro level. This becomes obvious when you try asking for someone new to the project to figure out how it works by looking only at the code and a scene full of game objects. It's easy to spot the individual parts but the game as a whole becomes hard to grasp.
 
-This project solves this by having all the code laid out in plain code, in one place and in sequence. Taking a look at the Update function from the Main class we can understand all that the game is doing every frame. All of this without losing the things that the engine provides such as rendering, particles, editor, physics and build system.
+This project solves this by having all the code laid out in plain code, in one place and in sequence. Taking a look at the Update function from the Main class, for example, we can easily understand all the operations that the game does every frame. All of this without losing the things that the engine provides such as rendering, particles, editor, physics and build system.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+The only downside to this approach is that it becomes harder to understand asynchronous operations, because we are dealing with things frame by frame. As such, I would advise to use other types of architectures for parts which are not performance dependant, such as complex UIs, communication with the Backend or integration with other services. For those, I would prefer a more functional approach using reactive extensions (commonly accomplished using the UniRx library).
