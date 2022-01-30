@@ -1,6 +1,6 @@
 # Red Spree Remake
 
-The purpose of this project is to present an example of my current vision of the ideal architecture for Unity projects.  This architecture follows the principles of simplicity, productivity, performance and scalability. It employs for the most part structs and static classes while avoiding the default component architecture from Unity and OOP (reasons for those are explained at the end of this document).
+The purpose of this project is to present an example of my current vision of the ideal architecture for Unity projects.  This architecture follows the principles of simplicity, productivity, performance and scalability. It employs for the most part structs and static classes while avoiding the default component architecture from Unity and OOP (reasons are detailed [here](#design-decisions)).
 
 ### Main Component
 
@@ -10,7 +10,7 @@ The Main class also manages the transition of the various states of the game suc
 
 ### System Classes
 
-Despite avoiding OOP we still want to maintain a certain level of abstraction. This is done by separating the different systems into its own classes which, for the most part, can work independently. In general, each of these classes contain only the Initialize and Update functions as public with side effects. Adding more of those types of functions is allowed but discouraged in order to avoid the biggest cognitive challenge faced when trying to understand static classes: when there are too many external functions changing its state at random locations.
+Despite avoiding OOP we still want to maintain a certain level of independence between the classes. This is done by separating the different systems into its own classes which, for the most part, can work independently. In general, each of these classes contain only the Initialize and Update functions as public with side effects. Adding more of those types of functions is allowed but discouraged in order to avoid the biggest cognitive challenge faced when trying to understand static classes: when there are too many external functions changing its state at random locations.
 
 System classes also usually contains a public State field which holds data that persists over frames. The intent is that only the class itself can change its state by means of calls to its public functions and, as such, external accesses to this State field should be done exclusively for reading (this is not enforced by any type of encapsulation in order to avoid unnecessary copies, additional code and to boost productivity).
 
@@ -96,9 +96,9 @@ As previously mentioned, running the game simulation in the FixedUpdate ties it 
 
 The biggest downside in this project's architecture, however, is how to receive physics events. Unity only allows receiving collision events by the OnCollision/OnTrigger functions on the MonoBehaviours, and so we are obligated to work with some type of callback design.
 
-The ideal API that would fit this architecture would be to receive the resulted collisions directly from the physics frame simulation call, something like the following:
+The ideal API that would fit this architecture would be to receive the resulted collision events directly from the physics frame simulation call, something like the following:
 
-```cshap
+```csharp
 CollisionEvents[] collisions = Physics.Simulate(time.DeltaSeconds);
 ```
 
@@ -108,11 +108,15 @@ In this project a workaround was used to solve this problem by storing every col
 
 In this project the game simulation and rendering are mixed up in the Game class, noted by the access of Transforms directly. It was made this way to boost productivity, but those concepts can be separated if necessary. Doing so would facilitate adding rendering interpolation between game states and would allow testing the game simulation without the hurdle of loading a scene beforehand.
 
-<!-- 
-More topics:
-Design Decisions Reasoning
--->
+### Design Decisions
 
+One of the most proclaimed reasons for the adoption of OOP or the Unity Component System is because of their capabilities of separating concepts into smaller parts that can be easily reused. This is usually done by instantiating news classes or attaching new components to objects. But, in my experience, the reality is that as the project starts to grow, this newly added class or component often needs to be known from other classes. This dependency, when not well documented or communicated, can cause productivity delays.
+
+One common solution to this problem is to create some type of design or engineering to replace this coupling, such as using Singletons or ScriptableObjects to act as mediators. But those come with their own problems.
+
+However, in my opinion, the biggest problem with micro separations and over engineering is that the project becomes more and more complex to understand in a macro level. This becomes obvious when you try asking for someone new to the project to figure out how it works by looking at the code and a scene full of game objects. Its easy to spot the individual parts but the game as a whole becomes hard to grasp.
+
+This project solves this by having all the code laid out in plain code, in one place and in sequence. Taking a look at the Update function from the Main class we can understand all that the game is doing every frame. All of this without losing the things that the engine provides such as rendering, particles, editor, physics and build system.
 
 
 
