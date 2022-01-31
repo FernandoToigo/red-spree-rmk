@@ -1,6 +1,8 @@
 # Red Spree Remake
 
-The purpose of this project is to present an example of my current vision of the ideal architecture for Unity projects.  This architecture follows the principles of simplicity, productivity, performance, and scalability. It employs for the most part structs and static classes while avoiding the default component architecture from Unity and OOP (reasons are detailed [here](#design-decisions)).
+The purpose of this project is to present an example of my current vision of the ideal architecture for Unity projects. This architecture follows the principles of simplicity, productivity, performance, and scalability. It employs for the most part structs and static classes while avoiding the default component architecture from Unity and OOP (reasons are detailed [here](#design-decisions)).
+
+A Web version of the game can be played [here](https://fernandotoigo.github.io/red-spree-rmk/).
 
 ### Main Component
 
