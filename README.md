@@ -69,7 +69,7 @@ Since the introduction of the new Input System, we can now read user input from 
 
 While having the following disadvantages:
 
-- Rendering two frames without changes in the game simulation between them is not ideal because their results would be identical and so we GPU resources are spent without necessity. This can be solved by implementing an interpolation on the visuals between game states.
+- Rendering two frames without changes in the game simulation between them is not ideal because their results would be identical and as such GPU resources are spent without necessity. This can be solved by implementing an interpolation on the visuals between game states.
 - If game simulation frames start to take more than the fixed time step to finish then the game is going to start falling behind the real-time. There's no real solution to this besides hoping the frames get faster again or dropping them.
 
 ### Automated Tests
@@ -112,7 +112,7 @@ Currently, the game simulation and rendering are mixed up in the Game class, not
 
 ### Design Decisions
 
-One of the most proclaimed reasons for the adoption of OOP or the Unity Component System is because of their capabilities of separating concepts into smaller parts that can be easily reused. This is usually done by instantiating news classes or attaching new components to objects. But, in my experience, the reality is that as the project starts to grow, this newly added class or component often needs to be known from other classes. This dependency, when not well documented or communicated, can cause delays in productivity.
+One of the most proclaimed benefits for the adoption of OOP or the Unity Component System is because of their capabilities of separating concepts into smaller parts that can be easily reused. This is usually done by instantiating news classes or attaching new components to objects. But, in my experience, the reality is that as the project starts to grow, this newly added class or component often needs to be known from other classes. This dependency, when not well documented or communicated, can cause delays in productivity.
 
 One common solution to this problem is to create some type of design or engineering to replace this coupling, such as using Singletons or ScriptableObjects to act as mediators. But those come with their own problems.
 
@@ -120,9 +120,9 @@ However, in my opinion, the biggest problem with micro separations and over-engi
 
 This project solves this by having all the code laid out in plain code, in one place, and in sequence. Taking a look at the Update function from the Main class, for example, we can easily understand all the operations that the game does every frame. All of this without losing the things that the engine provides such as rendering, particles, editor, physics, and build system.
 
-The only downside to this approach is that it becomes harder to understand asynchronous operations because we are dealing with things frame by frame. As such, I would advise using other types of architectures for parts that are not performance dependant, such as complex UIs, communication with the Backend, or integration with other services. For those, I would prefer a more functional approach using reactive extensions (commonly accomplished using the UniRx library).
+One downside to this approach is that it becomes harder to understand asynchronous operations because we are dealing with things frame by frame. As such, I would advise using other types of architectures for parts that are not performance dependant, such as complex UIs, communication with the Backend, or integration with other services. For those, I would prefer a more functional approach using reactive extensions (commonly accomplished using the UniRx library).
 
-
+Another downside is that there is little forced design from the code structure that could help guide developers to maintain the architecture. This means that, despite having more freedom, we have more responsibility to follow the informal principles when adding new code to the project. This can be remediated though by a higher rate of review towards code added from beginner developers.
 
 
 
